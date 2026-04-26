@@ -7,51 +7,73 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    
+    <style>
+        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow-x: hidden; }
+        #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
+        
+        /* New Style for Header & Buttons */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 10px; 
+            background: #1b1c21; 
+            align-items: center; 
+            border-bottom: 1px solid #333;
+            gap: 8px; 
+        }
+        .u-info { font-size: 10px; color: var(--blue); flex: 1; min-width: 80px; }
+        
+        .bal-box { 
+            border: 1.5px solid var(--win); 
+            border-radius: 20px; 
+            padding: 4px 10px; 
+            color: var(--win); 
+            font-weight: 800; 
+            font-size: 13px;
+            background: rgba(0,0,0,0.3);
+            margin: 0 5px;
+            text-align: center;
+            min-width: 85px;
+        }
+
+        .nav-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .nav-btns button {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* Rest of the Styles */
+        .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; white-space: nowrap; }
+        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; }
+        .arena { height: 220px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #mVal { font-size: 50px; font-weight: 900; z-index: 10; }
+        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
+        #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 10px 20px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
+        .live-stats { background: #1b1c21; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid #333; }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
+        .bet-box { background: #14151b; padding: 10px; border-radius: 15px; border: 1px solid #333; text-align: center; }
+        .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px; font-size: 16px; }
+        .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); box-shadow: 0 3px #1e7e34; }
+        .winners-list { background: #0a0a0a; padding: 10px; min-height: 150px; font-size: 11px; }
+        .win-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
+        .close-btn { float: right; font-size: 24px; cursor: pointer; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+    </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div style="width:80%; text-align:center;">
         <h2 style="color:var(--red)">AVIATOR LOGIN</h2>
-        <input type="email" id="l-e
-            <style>
-        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow-x: hidden; }
-        #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
-        
-        /* Header */
-        .header { display: flex; justify-content: space-between; padding: 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; }
-        .u-info { font-size: 11px; color: var(--blue); }
-        .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 3px 12px; color: var(--win); font-weight: 800; }
-
-        /* History Bar */
-        .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; white-space: nowrap; }
-        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; }
-
-        /* Arena */
-        .arena { height: 220px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        #mVal { font-size: 50px; font-weight: 900; z-index: 10; }
-        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
-        #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 10px 20px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
-
-        /* Live Players */
-        .live-stats { background: #1b1c21; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid #333; }
-
-        /* Controls */
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
-        .bet-box { background: #14151b; padding: 10px; border-radius: 15px; border: 1px solid #333; text-align: center; }
-        .b-input { width: 80%; background: #000; border: 1px solid #444; color: white; padding: 8px; border-radius: 8px; text-align: center; margin-bottom: 5px; }
-        .b-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); }
-
-        /* Winners & Tabs */
-        .winners-list { background: #0a0a0a; padding: 10px; min-height: 150px; font-size: 11px; }
-        .win-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
-        .close-btn { float: right; font-size: 24px; cursor: pointer; }
-        
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-            </style></style>mail" placeholder="Email" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
+        <input type="email" id="l-email" placeholder="Email" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
         <input type="password" id="l-pass" placeholder="Password" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
         <button onclick="login()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold;">LOGIN</button>
     </div>
@@ -65,8 +87,8 @@
         </div>
         <div class="bal-box">Rs <span id="uBal">0.00</span></div>
         <div class="nav-btns">
-            <button onclick="toggleTab('depTab')" style="background:var(--win); color:white; border:none; padding:5px 10px; border-radius:5px; font-size:11px; font-weight:bold;">DEPOSIT</button>
-            <button onclick="toggleTab('witTab')" style="background:var(--blue); color:white; border:none; padding:5px 10px; border-radius:5px; font-size:11px; font-weight:bold; margin-left:5px;">WITHDRAW</button>
+            <button onclick="toggleTab('depTab')" style="background:var(--win);">DEPOSIT</button>
+            <button onclick="toggleTab('witTab')" style="background:var(--blue);">WITHDRAW</button>
         </div>
     </div>
 
@@ -183,15 +205,9 @@ function runEngine() {
         if(!active) { clearInterval(loop); return; }
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
-        
-        // Players decrease
         if(players > 50) players -= Math.floor(Math.random()*10);
         document.getElementById('pCount').innerText = players;
-
-        // Random Winners
         if(Math.random() > 0.9) addWinRow(`User_${Math.floor(Math.random()*999)}`, Math.floor(Math.random()*500), mult.toFixed(2));
-
-        // House Edge 25% Crash
         if(Math.random() < (0.0125)) { crash(); }
     }, 100);
 }
@@ -201,13 +217,9 @@ function crash() {
     document.getElementById('mVal').innerText = "FLEW AWAY!";
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
-    
-    // Add History
     const tag = document.createElement('div');
     tag.className = 'h-tag'; tag.innerText = mult.toFixed(2) + 'x';
     document.getElementById('hBar').prepend(tag);
-
-    // Reset Bets
     [1, 2].forEach(id => {
         const b = document.getElementById('btn' + id);
         b.innerText = "BET"; b.style.background = "#28a745";
@@ -220,7 +232,6 @@ function handleBet(id) {
     const btn = document.getElementById('btn' + id);
     const amt = parseFloat(document.getElementById('amt' + id).value);
     let b = id === 1 ? bet1 : bet2;
-
     if(!b.active) {
         if(amt > balance) return alert("Low Balance!");
         db.ref('users/'+uid).update({balance: balance - amt});
@@ -264,5 +275,4 @@ function submitWit() {
 }
 </script>
 </body>
-            </html>
-    
+</html>
