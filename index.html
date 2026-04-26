@@ -3,80 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aviator Pro - Login</title>
+    <title>Pak Aviator Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        /* CSS Settings for Login & Game */
-        :root { --red: #e11d48; --bg: #0f1016; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; }
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; }
+        /* Aapki Original Professional Game ki CSS */
+        :root { --red: #e11d48; --bg: #0f1016; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f59e0b; }
+        * { box-sizing: border-box; font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: #000; color: #fff; overflow-x: hidden; }
         
-        /* Login Screen */
+        /* Login Box Styles */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-box { background: var(--card); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid #333; text-align: center; }
-        .auth-box h2 { color: var(--red); margin-bottom: 20px; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; outline: none; }
-        .auth-btn { width: 100%; padding: 12px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .toggle-link { font-size: 12px; color: var(--blue); cursor: pointer; display: block; margin-top: 15px; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; }
+        .auth-btn { width: 100%; padding: 12px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Game UI (Same as before) */
+        /* Game UI Layout */
         #game-screen { display: none; }
         .header { display: flex; justify-content: space-between; padding: 10px; background: #16171d; border-bottom: 1px solid #333; align-items: center; }
-        .bal-box { border: 2px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: bold; }
+        .bal-box { border: 2px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: bold; background: rgba(0,0,0,0.5); }
         .arena { height: 260px; background: #000; position: relative; margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
-        #mVal { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; font-weight: 900; z-index: 10; }
-        .main-btn { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; border: none; font-size: 16px; font-weight: 900; color: #fff; cursor: pointer; }
-        .btn-bet { background: var(--win); }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; }
-        .m-content { background: #1b1c21; width: 90%; border-radius: 20px; padding: 20px; }
+        #mVal { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; font-weight: 900; z-index: 10; font-style: italic; color: #fff; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="auth-box" id="login-form">
-        <h2>AVIATOR LOGIN</h2>
+        <h2 style="color:var(--red)">AVIATOR LOGIN</h2>
         <input type="email" id="l-email" class="auth-input" placeholder="Email">
         <input type="password" id="l-pass" class="auth-input" placeholder="Password">
         <button onclick="login()" class="auth-btn">LOGIN</button>
-        <span class="toggle-link" onclick="toggleAuth()">New User? Create Account</span>
+        <p onclick="toggleAuth()" style="color:var(--blue); cursor:pointer; margin-top:15px; font-size:14px;">New User? Create Account</p>
     </div>
     <div class="auth-box" id="signup-form" style="display:none;">
-        <h2>CREATE ACCOUNT</h2>
+        <h2 style="color:var(--win)">CREATE ACCOUNT</h2>
         <input type="email" id="s-email" class="auth-input" placeholder="Email">
         <input type="password" id="s-pass" class="auth-input" placeholder="Password">
-        <button onclick="signup()" class="auth-btn">REGISTER</button>
-        <span class="toggle-link" onclick="toggleAuth()">Already have account? Login</span>
+        <button onclick="signup()" class="auth-btn" style="background:var(--win)">REGISTER</button>
+        <p onclick="toggleAuth()" style="color:var(--blue); cursor:pointer; margin-top:15px; font-size:14px;">Already have account? Login</p>
     </div>
 </div>
 
 <div id="game-screen">
     <div class="header">
-        <button onclick="openM()" style="background:var(--blue); border:none; padding:5px 15px; border-radius:10px; color:#fff;">PROFILE</button>
+        <button onclick="openM()" style="background:var(--blue); border:none; padding:5px 15px; border-radius:10px; color:#fff; font-weight:bold;">PROFILE</button>
         <div class="bal-box">Rs <span id="pBal">0.00</span></div>
-        <button onclick="logout()" style="background:grey; border:none; padding:5px 10px; border-radius:10px; color:#fff;">LOGOUT</button>
+        <button onclick="logout()" style="background:#444; border:none; padding:5px 10px; border-radius:10px; color:#fff;">LOGOUT</button>
     </div>
+    
     <div class="arena">
         <div id="mVal">1.00x</div>
         <canvas id="canvas" style="width:100%; height:100%;"></canvas>
     </div>
-    <div style="padding:10px;">
-        <input type="number" id="amt" value="100" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid #333; border-radius:10px;">
-        <button class="main-btn btn-bet">BET</button>
-    </div>
-</div>
 
-<div id="uMod" class="modal">
-    <div class="m-content">
-        <h3>User Profile</h3>
-        <p id="uDetails">Loading...</p>
-        <button onclick="closeM()" class="auth-btn">CLOSE</button>
+    <div style="padding:10px;">
+        <div style="background:var(--card); padding:15px; border-radius:15px; border:1px solid #333;">
+            <input type="number" id="amt" value="100" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid #444; border-radius:10px; font-size:18px; text-align:center;">
+            <button id="betBtn" class="auth-btn" style="background:var(--win); margin-top:10px; font-size:20px;">BET</button>
+        </div>
     </div>
 </div>
 
 <script>
-// Firebase Config (Must match your Admin Panel)
+// Firebase Config (Aapke project ka data)
 const firebaseConfig = { 
     apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
     databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
@@ -85,7 +76,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const auth = firebase.auth();
 
-// Auth Logic
+// Auth logic
 function toggleAuth() {
     const l = document.getElementById('login-form'), s = document.getElementById('signup-form');
     l.style.display = l.style.display === 'none' ? 'block' : 'none';
@@ -94,8 +85,9 @@ function toggleAuth() {
 
 function signup() {
     const e = document.getElementById('s-email').value, p = document.getElementById('s-pass').value;
+    if(!e || !p) return alert("Please fill details");
     auth.createUserWithEmailAndPassword(e, p).then(res => {
-        db.ref('users/' + res.user.uid).set({ email: e, balance: 0, wager: 0 });
+        db.ref('users/' + res.user.uid).set({ email: e, balance: 500, wager: 0 }); // New user ko 500 bonus
         alert("Account Created!");
     }).catch(err => alert(err.message));
 }
@@ -111,25 +103,24 @@ auth.onAuthStateChanged(user => {
     if(user) {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'block';
-        loadData(user.uid);
-    } else {
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('game-screen').style.display = 'none';
+        db.ref('users/' + user.uid).on('value', s => {
+            const d = s.val();
+            if(d) document.getElementById('pBal').innerText = d.balance.toFixed(2);
+        });
+        startOriginalGame(); // Game engine start karein
     }
 });
 
-function loadData(uid) {
-    db.ref('users/' + uid).on('value', s => {
-        const d = s.val();
-        if(d) {
-            document.getElementById('pBal').innerText = d.balance.toFixed(2);
-            document.getElementById('uDetails').innerHTML = `Email: ${d.email}<br>Balance: Rs ${d.balance}<br>Wager: ${d.wager}`;
-        }
-    });
+// Original Game Logic (Placeholder for Graphics)
+function startOriginalGame() {
+    let multiplier = 1.00;
+    const mDisplay = document.getElementById('mVal');
+    setInterval(() => {
+        multiplier += 0.01;
+        mDisplay.innerText = multiplier.toFixed(2) + "x";
+    }, 100);
+    // Yahan hum aapki original plane wali animation ka code mazeed add karenge
 }
-
-function openM() { document.getElementById('uMod').style.display = 'flex'; }
-function closeM() { document.getElementById('uMod').style.display = 'none'; }
 </script>
 </body>
 </html>
