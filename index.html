@@ -8,75 +8,103 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        /* Aapki Original Professional Game ki CSS */
-        :root { --red: #e11d48; --bg: #0f1016; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f59e0b; }
-        * { box-sizing: border-box; font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #000; color: #fff; overflow-x: hidden; }
-        
-        /* Login Box Styles */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-box { background: var(--card); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid #333; text-align: center; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; }
+        :root { --red: #e11d48; --bg: #0f1016; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; }
+        * { box-sizing: border-box; font-family: sans-serif; margin: 0; padding: 0; }
+        body { background: #000; color: #fff; overflow-x: hidden; }
+
+        /* Auth Screen */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; }
+        .auth-box { background: var(--card); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; border: 1px solid #333; }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; }
         .auth-btn { width: 100%; padding: 12px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Game UI Layout */
-        #game-screen { display: none; }
-        .header { display: flex; justify-content: space-between; padding: 10px; background: #16171d; border-bottom: 1px solid #333; align-items: center; }
-        .bal-box { border: 2px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: bold; background: rgba(0,0,0,0.5); }
-        .arena { height: 260px; background: #000; position: relative; margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
-        #mVal { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; font-weight: 900; z-index: 10; font-style: italic; color: #fff; }
+        /* Header */
+        .header { display: flex; justify-content: space-between; padding: 10px; background: #16171d; align-items: center; border-bottom: 1px solid #333; }
+        .bal-box { border: 2px solid var(--win); border-radius: 20px; padding: 5px 15px; color: var(--win); font-weight: bold; }
+        .nav-btn { background: var(--blue); border: none; padding: 6px 12px; border-radius: 8px; color: #fff; font-size: 12px; font-weight: bold; }
+
+        /* Game Arena */
+        .arena { height: 260px; background: #000; position: relative; margin: 10px; border-radius: 15px; overflow: hidden; border: 1px solid #222; }
+        #canvas { width: 100%; height: 100%; }
+        #mVal { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: 900; z-index: 10; color: #fff; }
+        
+        /* Betting Area */
+        .bet-area { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+        .bet-card { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid #333; text-align: center; }
+        .bet-input { width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 18px; text-align: center; }
+        .btn-bet { width: 100%; padding: 15px; border-radius: 12px; border: none; color: #fff; font-size: 20px; font-weight: 900; cursor: pointer; background: var(--win); }
+
+        /* Live Bets List */
+        .bet-list { padding: 10px; background: #000; border-radius: 10px; margin: 10px; }
+        .list-header { display: flex; justify-content: space-between; color: #888; font-size: 12px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+        .bet-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #111; font-size: 13px; }
+        .win-txt { color: var(--win); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="auth-box" id="login-form">
-        <h2 style="color:var(--red)">AVIATOR LOGIN</h2>
+        <h2 style="color:var(--red); margin-bottom:15px;">AVIATOR LOGIN</h2>
         <input type="email" id="l-email" class="auth-input" placeholder="Email">
         <input type="password" id="l-pass" class="auth-input" placeholder="Password">
         <button onclick="login()" class="auth-btn">LOGIN</button>
-        <p onclick="toggleAuth()" style="color:var(--blue); cursor:pointer; margin-top:15px; font-size:14px;">New User? Create Account</p>
+        <p onclick="toggleAuth()" style="color:var(--blue); margin-top:15px; cursor:pointer; font-size:13px;">New User? Create Account</p>
     </div>
     <div class="auth-box" id="signup-form" style="display:none;">
-        <h2 style="color:var(--win)">CREATE ACCOUNT</h2>
+        <h2 style="color:var(--win); margin-bottom:15px;">REGISTER</h2>
         <input type="email" id="s-email" class="auth-input" placeholder="Email">
         <input type="password" id="s-pass" class="auth-input" placeholder="Password">
-        <button onclick="signup()" class="auth-btn" style="background:var(--win)">REGISTER</button>
-        <p onclick="toggleAuth()" style="color:var(--blue); cursor:pointer; margin-top:15px; font-size:14px;">Already have account? Login</p>
+        <button onclick="signup()" class="auth-btn" style="background:var(--win)">CREATE ACCOUNT</button>
+        <p onclick="toggleAuth()" style="color:var(--blue); margin-top:15px; cursor:pointer; font-size:13px;">Already have account? Login</p>
     </div>
 </div>
 
-<div id="game-screen">
+<div id="game-screen" style="display:none;">
     <div class="header">
-        <button onclick="openM()" style="background:var(--blue); border:none; padding:5px 15px; border-radius:10px; color:#fff; font-weight:bold;">PROFILE</button>
+        <button class="nav-btn">PROFILE</button>
         <div class="bal-box">Rs <span id="pBal">0.00</span></div>
-        <button onclick="logout()" style="background:#444; border:none; padding:5px 10px; border-radius:10px; color:#fff;">LOGOUT</button>
-    </div>
-    
-    <div class="arena">
-        <div id="mVal">1.00x</div>
-        <canvas id="canvas" style="width:100%; height:100%;"></canvas>
+        <button onclick="logout()" class="nav-btn" style="background:#444;">LOGOUT</button>
     </div>
 
-    <div style="padding:10px;">
-        <div style="background:var(--card); padding:15px; border-radius:15px; border:1px solid #333;">
-            <input type="number" id="amt" value="100" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid #444; border-radius:10px; font-size:18px; text-align:center;">
-            <button id="betBtn" class="auth-btn" style="background:var(--win); margin-top:10px; font-size:20px;">BET</button>
+    <div class="arena">
+        <div id="mVal">1.00x</div>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="bet-area">
+        <div class="bet-card">
+            <input type="number" id="amt1" value="100" class="bet-input">
+            <button onclick="placeBet(1)" id="btn1" class="btn-bet">BET</button>
+        </div>
+        <div class="bet-card">
+            <input type="number" id="amt2" value="100" class="bet-input">
+            <button onclick="placeBet(2)" id="btn2" class="btn-bet">BET</button>
+        </div>
+    </div>
+
+    <div class="bet-list">
+        <div class="list-header"><span>User</span><span>Bet</span><span>Cashout</span></div>
+        <div id="live-bets">
+            <div class="bet-row"><span>User_742</span><span>Rs 500</span><span class="win-txt">1.45x</span></div>
+            <div class="bet-row"><span>User_129</span><span>Rs 1000</span><span class="win-txt">2.10x</span></div>
         </div>
     </div>
 </div>
 
 <script>
-// Firebase Config (Aapke project ka data)
+// Firebase Configuration
 const firebaseConfig = { 
     apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
     databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+const db = firebase.database(), auth = firebase.auth();
 
-// Auth logic
+let userUID = null;
+let currentBal = 0;
+
+// Auth Functions
 function toggleAuth() {
     const l = document.getElementById('login-form'), s = document.getElementById('signup-form');
     l.style.display = l.style.display === 'none' ? 'block' : 'none';
@@ -85,10 +113,9 @@ function toggleAuth() {
 
 function signup() {
     const e = document.getElementById('s-email').value, p = document.getElementById('s-pass').value;
-    if(!e || !p) return alert("Please fill details");
     auth.createUserWithEmailAndPassword(e, p).then(res => {
-        db.ref('users/' + res.user.uid).set({ email: e, balance: 500, wager: 0 }); // New user ko 500 bonus
-        alert("Account Created!");
+        db.ref('users/' + res.user.uid).set({ email: e, balance: 500 });
+        alert("Success! 500 Bonus added.");
     }).catch(err => alert(err.message));
 }
 
@@ -101,25 +128,43 @@ function logout() { auth.signOut(); location.reload(); }
 
 auth.onAuthStateChanged(user => {
     if(user) {
+        userUID = user.uid;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'block';
         db.ref('users/' + user.uid).on('value', s => {
-            const d = s.val();
-            if(d) document.getElementById('pBal').innerText = d.balance.toFixed(2);
+            currentBal = s.val().balance;
+            document.getElementById('pBal').innerText = currentBal.toFixed(2);
         });
-        startOriginalGame(); // Game engine start karein
+        initGame();
     }
 });
 
-// Original Game Logic (Placeholder for Graphics)
-function startOriginalGame() {
-    let multiplier = 1.00;
-    const mDisplay = document.getElementById('mVal');
+// Game Engine
+function initGame() {
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+    let mult = 1.00, points = [];
+
     setInterval(() => {
-        multiplier += 0.01;
-        mDisplay.innerText = multiplier.toFixed(2) + "x";
+        mult += 0.01;
+        document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+        
+        // Draw Curve
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.strokeStyle = "#e11d48"; ctx.lineWidth = 5;
+        ctx.beginPath();
+        points.push({x: points.length, y: canvas.height - (mult * 20)});
+        points.forEach((p, i) => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
     }, 100);
-    // Yahan hum aapki original plane wali animation ka code mazeed add karenge
+}
+
+function placeBet(id) {
+    const amt = parseFloat(document.getElementById('amt'+id).value);
+    if(amt > currentBal) return alert("Low Balance!");
+    db.ref('users/' + userUID).update({ balance: currentBal - amt });
+    const btn = document.getElementById('btn'+id);
+    btn.innerText = "CASHOUT"; btn.style.background = "orange";
 }
 </script>
 </body>
