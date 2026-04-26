@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pak Aviator Pro</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        :root { --red: #e11d48; --bg: #0f1016; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f59e0b; }
+        * { box-sizing: border-box; font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: #000; color: #fff; overflow-x: hidden; }
+        #app { width: 100%; max-width: 500px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; }
+
+        /* UI Header */
+        .header { display: flex; justify-content: space-between; padding: 10px; background: #16171d; border-bottom: 1px solid #333; align-items: center; }
+        .bal-box { border: 2px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: bold; background: rgba(0,0,0,0.5); }
+        .nav-btns button { padding: 8px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; color: #fff; font-size: 12px; }
+
+        /* History Row */
+        .history-row { display: flex; gap: 6px; padding: 8px; overflow-x: auto; background: #000; scrollbar-width: none; }
+        .h-item { padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #1b1c21; border: 1px solid #333; }
+
+        /* Game Arena */
+        .arena { height: 260px; background: #000; position: relative; overflow: hidden; margin: 10px; border-radius: 12px; border: 1px solid #222; }
+        #canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
+        #mVal { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; font-weight: 900; font-style: italic; z-index: 10; }
+        #plane-emoji { position: absolute; font-size: 35px; z-index: 5; display: none; filter: drop-shadow(0 0 10px var(--red)); transform: rotate(-10deg); transition: transform 0.1s linear; }
+        #timer-box { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); color: var(--win); font-size: 18px; font-weight: bold; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); z-index: 20; display: none; }
+
+        /* Bet Controls */
+        .bet-area { padding: 0 10px 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .bet-card { background: var(--card); border-radius: 15px; padding: 12px; border: 1px solid #333; }
+        .tab-switch { display: flex; background: #000; border-radius: 20px; padding: 2px; margin-bottom: 8px; font-size: 10px; }
+        .tab { flex: 1; text-align: center; padding: 4px; border-radius: 15px; cursor: pointer; color: #888; }
+        .tab.active { background: #2d2e35; color: #fff; }
+        
+        .input-box { background: #000; border: 1px solid #444; border-radius: 10px; padding: 6px; display: flex; align-items: center; justify-content: space-between; }
+        .input-box input { background: none; border: none; color: #fff; text-align: center; width: 100%; font-weight: bold; outline: none; }
+        
+        .main-btn { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; border: none; font-size: 16px; font-weight: 900; color: #fff; cursor: pointer; text-transform: uppercase; }
+        .btn-bet { background: var(--win); box-shadow: 0 4px #145524; }
+        .btn-cashout { background: var(--gold); color: #000; box-shadow: 0 4px #b45309; }
+        .btn-wait { background: #333; color: #666; cursor: not-allowed; }
+
+        /* Stats */
+        .stats-panel { background: #0a0a0a; border-radius: 20px 20px 0 0; padding: 15px; border-top: 1px solid #333; min-height: 300px; }
+        .stat-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 8px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .m-content { background: #1b1c21; width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; border: 1px solid #444; }
+        .m-input { width: 100%; background: #000; border: 1px solid #444; padding: 12px; border-radius: 10px; color: #fff; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<audio id="snd-bet" src="https://raw.githubusercontent.com/Anis-Muz/AviatorSounds/main/bet.mp3"></audio>
+<audio id="snd-cash" src="https://raw.githubusercontent.com/Anis-Muz/AviatorSounds/main/cashout.mp3"></audio>
+<audio id="snd-crash" src="https://raw.githubusercontent.com/Anis-Muz/AviatorSounds/main/crash.mp3"></audio>
+
+<div id="app">
+    <div class="header">
+        <div class="nav-btns"><button onclick="openM('uMod')" style="background:var(--blue)">PROFILE</button></div>
+        <div class="bal-box">Rs <span id="pBal">0.00</span></div>
+        <div class="nav-btns">
+            <button onclick="openM('dMod')" style="background:var(--win)">DEPOSIT</button>
+            <button onclick="openM('wMod')" style="background:var(--blue)">WITHDRAW</button>
+        </div>
+    </div>
+
+    <div class="history-row" id="topHistory"></div>
+
+    <div class="arena">
+        <canvas id="canvas"></canvas>
+        <div id="timer-box">NEXT ROUND IN: 9s</div>
+        <div id="mVal">1.00x</div>
+        <div id="plane-emoji">✈️</div>
+    </div>
+
+    <div class="bet-area">
+        <div class="bet-card">
+            <div class="tab-switch">
+                <div class="tab active" onclick="setTab(1,'bet')">Bet</div>
+                <div class="tab" onclick="setTab(1,'auto')">Auto</div>
+            </div>
+            <div class="input-box"><input type="number" id="amt1" value="100"></div>
+            <div id="auto-opt1" style="display:none; margin-top:5px;">
+                <input type="number" id="limit1" placeholder="Auto Cash (e.g 2.0)" style="width:100%; background:#000; border:1px solid #444; color:#fff; font-size:10px; padding:4px;">
+            </div>
+            <button id="btn1" class="main-btn btn-bet" onclick="handleBet(1)">BET</button>
+        </div>
+        <div class="bet-card">
+            <div class="tab-switch">
+                <div class="tab active" onclick="setTab(2,'bet')">Bet</div>
+                <div class="tab" onclick="setTab(2,'auto')">Auto</div>
+            </div>
+            <div class="input-box"><input type="number" id="amt2" value="100"></div>
+            <div id="auto-opt2" style="display:none; margin-top:5px;">
+                <input type="number" id="limit2" placeholder="Auto Cash (e.g 1.5)" style="width:100%; background:#000; border:1px solid #444; color:#fff; font-size:10px; padding:4px;">
+            </div>
+            <button id="btn2" class="main-btn btn-bet" onclick="handleBet(2)">BET</button>
+        </div>
+    </div>
+
+    <div class="stats-panel">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#888;"><span>ALL BETS</span><span>ONLINE: <b style="color:var(--win)">1042</b></span></div>
+        <div id="betList"></div>
+    </div>
+</div>
+
+<div id="dMod" class="modal"><div class="m-content"><h3>Deposit</h3><input type="number" id="dAmt" class="m-input" placeholder="Amount"><input type="text" id="dTid" class="m-input" placeholder="TID"><button onclick="subReq('deposit')" class="main-btn btn-bet">SUBMIT</button><button onclick="closeM()" style="width:100%; background:none; border:none; color:#888; margin-top:10px;">Close</button></div></div>
+<div id="wMod" class="modal"><div class="m-content"><h3>Withdraw</h3><input type="number" id="wAmt" class="m-input" placeholder="Min 500"><input type="text" id="wNum" class="m-input" placeholder="Account Num"><button onclick="subReq('withdraw')" class="main-btn btn-bet">REQUEST</button><button onclick="closeM()" style="width:100%; background:none; border:none; color:#888; margin-top:10px;">Close</button></div></div>
+<div id="uMod" class="modal"><div class="m-content"><h3>Profile</h3><div id="uData">Loading...</div><button onclick="closeM()" class="main-btn btn-bet" style="margin-top:20px;">CLOSE</button></div></div>
+
+<script>
+// Firebase Config (Must Match Admin Panel)
+const firebaseConfig = { 
+    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
+    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+let uID = "", bal = 0, wager = 0, isRun = false, mult = 1.0, canv, ctx;
+let bet1 = { active: false, amt: 0, cashed: false, limit: 0 };
+let bet2 = { active: false, amt: 0, cashed: false, limit: 0 };
+
+auth.onAuthStateChanged(user => {
+    if(user) {
+        uID = user.uid;
+        db.ref('users/'+uID).on('value', s => {
+            const d = s.val();
+            if(d) {
+                bal = d.balance || 0; wager = d.wager || 0;
+                document.getElementById('pBal').innerText = bal.toFixed(2);
+                document.getElementById('uData').innerHTML = `Email: ${user.email}<br>Balance: ${bal}<br>Wager: ${wager.toFixed(0)}`;
+                // Admin Alert for Profit
+                if(d.deposit_total > 0 && bal >= (d.deposit_total * 2)) db.ref('alerts/profit').child(uID).set({ email: user.email, bal: bal });
+            }
+        });
+    } else { auth.signInAnonymously(); }
+});
+
+function openM(id) { document.getElementById(id).style.display = 'flex'; }
+function closeM() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
+
+function setTab(n, t) {
+    document.getElementById(`auto-opt${n}`).style.display = (t==='auto') ? 'block' : 'none';
+}
+
+function handleBet(n) {
+    const amt = parseFloat(document.getElementById('amt'+n).value);
+    const b = (n===1)?bet1:bet2;
+    if(isRun) { if(b.active && !b.cashed) doCashout(n); } 
+    else {
+        if(amt > bal) return alert("Low Balance");
+        b.active = true; b.amt = amt; b.cashed = false;
+        b.limit = parseFloat(document.getElementById('limit'+n).value) || 0;
+        document.getElementById('btn'+n).className = "main-btn btn-wait";
+        document.getElementById('btn'+n).innerText = "WAITING...";
+        document.getElementById('snd-bet').play();
+    }
+}
+
+function doCashout(n) {
+    const b = (n===1)?bet1:bet2;
+    if(!b.active || b.cashed) return;
+    let win = b.amt * mult;
+    db.ref('users/'+uID).update({ balance: bal + win, wager: wager + b.amt });
+    b.cashed = true;
+    document.getElementById('btn'+n).className = "main-btn btn-bet";
+    document.getElementById('btn'+n).innerText = "BET";
+    document.getElementById('snd-cash').play();
+}
+
+function startTimer() {
+    isRun = false; let s = 9;
+    document.getElementById('plane-emoji').style.display='none';
+    document.getElementById('mVal').style.display='none';
+    const tb = document.getElementById('timer-box'); tb.style.display='block';
+    let i = setInterval(() => {
+        tb.innerText = `NEXT ROUND IN: ${s}s`;
+        if(s-- <= 0) { clearInterval(i); tb.style.display='none'; startRound(); }
+    }, 1000);
+}
+
+function startRound() {
+    mult = 1.0; isRun = true;
+    const p = document.getElementById('plane-emoji'), mV = document.getElementById('mVal');
+    p.style.display='block'; mV.style.display='block'; mV.style.color='#fff';
+    
+    if(bet1.active) { db.ref('users/'+uID).update({ balance: bal - bet1.amt }); btnMode(1, 'cash'); }
+    if(bet2.active) { db.ref('users/'+uID).update({ balance: bal - bet2.amt }); btnMode(2, 'cash'); }
+
+    // Logic: 25% House Edge (Instant crash)
+    let crashPoint = (Math.random() < 0.25) ? (1.0 + Math.random()*0.05) : (1.1 + Math.random()*15);
+
+    let start = Date.now();
+    function loop() {
+        if(!isRun) return;
+        let elapsed = (Date.now() - start) / 1000;
+        let speed = 0.07 + (elapsed * 0.004); // Normal start, gets faster
+        mult = Math.pow(Math.E, speed * elapsed);
+        mV.innerText = mult.toFixed(2) + "x";
+        
+        draw(elapsed);
+        if(bet1.active && !bet1.cashed && bet1.limit > 1 && mult >= bet1.limit) doCashout(1);
+        if(bet2.active && !bet2.cashed && bet2.limit > 1 && mult >= bet2.limit) doCashout(2);
+
+        if(bet1.active && !bet1.cashed) document.getElementById('btn1').innerText = (mult*bet1.amt).toFixed(2);
+        if(bet2.active && !bet2.cashed) document.getElementById('btn2').innerText = (mult*bet2.amt).toFixed(2);
+
+        if(mult >= crashPoint) { crash(); return; }
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+}
+
+function draw(t) {
+    ctx.clearRect(0,0,canv.width,canv.height);
+    ctx.beginPath(); ctx.lineWidth = 5; ctx.strokeStyle = "#e11d48";
+    let x = 0, y = canv.height; ctx.moveTo(x, y);
+    for(let i=0; i<t*30; i++){ x = i * 3.5; y = canv.height - Math.pow(i, 1.45); ctx.lineTo(x, y); }
+    ctx.stroke();
+    const p = document.getElementById('plane-emoji'); p.style.left = (x - 20) + "px"; p.style.top = (y - 30) + "px";
+}
+
+function crash() {
+    isRun = false; document.getElementById('snd-crash').play();
+    document.getElementById('mVal').innerText = "FLEW AWAY!"; document.getElementById('mVal').style.color = "var(--red)";
+    const h = document.getElementById('topHistory'), d = document.createElement('div');
+    d.className = "h-item"; d.style.color = mult < 2 ? "var(--blue)" : "#9139ff";
+    d.innerText = mult.toFixed(2) + "x"; h.prepend(d);
+    bet1.active = false; bet2.active = false;
+    btnMode(1, 'bet'); btnMode(2, 'bet');
+    setTimeout(startTimer, 3000);
+}
+
+function btnMode(n, m) {
+    const b = document.getElementById('btn'+n);
+    if(m==='cash') b.className = "main-btn btn-cashout";
+    else { b.className = "main-btn btn-bet"; b.innerText = "BET"; }
+}
+
+function subReq(t) {
+    const a = parseFloat(document.getElementById(t==='deposit'?'dAmt':'wAmt').value);
+    const d = document.getElementById(t==='deposit'?'dTid':'wNum').value;
+    if(t==='withdraw' && wager < (a*10)) return alert("Wager incomplete! Need " + (a*10));
+    db.ref('requests').push({ uid:uID, amount:a, details:d, type:t, status:'pending', time:Date.now() });
+    alert("Request Sent!"); closeM();
+}
+
+window.onload = () => {
+    canv = document.getElementById('canvas'); ctx = canv.getContext('2d');
+    canv.width = 480; canv.height = 280; startTimer();
+    setInterval(() => {
+        const r = document.createElement('div'); r.className="stat-row";
+        r.innerHTML = `<span>User_${Math.floor(Math.random()*999)}</span><span>Rs ${Math.floor(Math.random()*1000)}</span><b style="color:var(--win)">${(1.1+Math.random()).toFixed(2)}x</b>`;
+        document.getElementById('betList').prepend(r);
+        if(document.getElementById('betList').children.length > 10) document.getElementById('betList').lastChild.remove();
+    }, 3000);
+};
+</script>
+</body>
+                  </html>
+  
