@@ -42,13 +42,11 @@
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:12px; border-left:4px solid var(--gold); margin-bottom:15px; line-height:1.5; }
         
-        /* Status Color Grading Re-added */
         .status-item { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #444; font-size: 12px; }
         .status-pending { border-color: var(--gold); color: var(--gold); }
         .status-approved { border-color: var(--win); color: var(--win); }
         .status-rejected { border-color: var(--red); color: var(--red); }
 
-        /* Bonus Popup Styles */
         #bonus-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; background: #1e1f26; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; z-index: 5000; text-align: center; box-shadow: 0 0 20px var(--gold); }
         .bonus-btn { background: var(--gold); color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
 
@@ -227,7 +225,6 @@ function loadStatusHistory() {
         let html = "";
         snapshot.forEach(child => {
             const req = child.val();
-            // Fixing Color Grading for Request Status
             const sClass = req.status === 'pending' ? 'status-pending' : (req.status === 'approved' || req.status === 'paid' || req.status === 'completed' ? 'status-approved' : 'status-rejected');
             html = `<div class="status-item ${sClass}"><b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>Status: <b>${req.status.toUpperCase()}</b></div>` + html;
         });
@@ -279,6 +276,12 @@ function launchPlane() {
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
         document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
         
+        // --- Live Player Reduction logic ---
+        if(currentPlayers > 10 && Math.random() < 0.3) {
+            currentPlayers -= Math.floor(Math.random() * 5) + 1;
+            document.getElementById('pCount').innerText = currentPlayers;
+        }
+
         let crashChance = 0.013; 
         if (!userHasBet) {
             if (mult < 7.0) crashChance = 0.002; 
@@ -366,4 +369,5 @@ function submitWit() {
 }
 </script>
 </body>
-</html>
+    </html>
+    
