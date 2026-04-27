@@ -12,7 +12,6 @@
         body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow-x: hidden; }
         #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
         
-        /* Header */
         .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; gap: 8px; }
         .u-info { font-size: 10px; color: var(--blue); flex: 1; min-width: 80px; }
         .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 10px; color: var(--win); font-weight: 800; font-size: 13px; background: rgba(0,0,0,0.3); text-align: center; min-width: 85px; }
@@ -33,15 +32,12 @@
         .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); }
         .auto-label { font-size: 10px; color: #888; display: block; margin-top: 5px; }
 
-        .live-stats { background: #1b1c21; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; }
         .winners-list { background: #0a0a0a; padding: 10px; min-height: 150px; font-size: 11px; }
         .win-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
         
-        /* Overlays */
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:12px; border-left:4px solid var(--gold); margin-bottom:15px; line-height:1.5; }
-        
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -67,14 +63,13 @@
     </div>
 
     <div class="history-bar" id="hBar"></div>
-
     <div class="arena">
         <div id="tBox">Next Round: 7s</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
     </div>
 
-    <div class="live-stats"><span>LIVE PLAYERS</span><span style="color:var(--win); font-weight:bold;">● <span id="pCount">1042</span></span></div>
+    <div class="live-stats"><span>LIVE PLAYERS</span><span style="color:var(--win); font-weight:bold;">● <span id="pCount">912</span></span></div>
 
     <div class="controls-grid">
         <div class="bet-box">
@@ -88,7 +83,6 @@
             <label class="auto-label"><input type="checkbox" id="auto2"> Auto Bet</label>
         </div>
     </div>
-
     <div class="winners-list" id="winRows"></div>
 
     <div id="depTab" class="overlay">
@@ -107,7 +101,9 @@
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue); text-align:center;">WITHDRAWAL</h3>
         <div class="inst-box" style="border-left-color: var(--blue);">
-            - Minimum Withdrawal: Rs 500.<br>- Payment Time: Within 24 Hours.
+            - Min Withdraw: <b>Rs 500</b>.<br>
+            - Wager Shart: Must bet <b>Rs 5000</b> total to unlock.<br>
+            - Time: Within 24 Hours.
         </div>
         <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="wNum" placeholder="Account Number" class="b-input" style="width:100%;">
@@ -117,9 +113,7 @@
     <div id="profileTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue);">MY PROFILE</h3>
-        <div id="profData" style="background:#1a1b21; padding:15px; border-radius:10px; font-size:13px; line-height:2; border:1px solid #333;">
-            Loading profile...
-        </div>
+        <div id="profData" style="background:#1a1b21; padding:15px; border-radius:10px; font-size:13px; border:1px solid #333;"></div>
         <h4 style="margin-top:20px; color:#888;">BET HISTORY</h4>
         <div id="uHistory" style="font-size:11px; color:#aaa; max-height:200px; overflow-y:auto;"></div>
     </div>
@@ -130,7 +124,7 @@ const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "
 firebase.initializeApp(conf);
 const auth = firebase.auth(), db = firebase.database();
 
-let uid, balance = 0, mult = 1.0, isFlying = false, isWaiting = true;
+let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 
 function toggleTab(id) { document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); if(id) document.getElementById(id).style.display = 'block'; }
@@ -142,18 +136,20 @@ function login() {
 
 auth.onAuthStateChanged(user => {
     if(user) {
-        uid = user.uid;
-        document.getElementById('uGmail').innerText = user.email;
+        uid = user.uid; userEmail = user.email;
+        document.getElementById('uGmail').innerText = userEmail;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         
-        // Profile Data Fill
-        document.getElementById('profData').innerHTML = `<b>Email:</b> ${user.email}<br><b>User ID:</b> ${uid.substr(0,12)}...<br><b>Status:</b> Verified User ✅`;
-
         db.ref('users/' + uid).on('value', s => { 
-            if(!s.exists()) db.ref('users/'+uid).set({email: user.email, balance: 0});
-            balance = s.val().balance || 0; 
+            if(!s.exists()) {
+                db.ref('users/'+uid).set({email: userEmail, balance: 100, wager: 0}); // 100 Bonus
+                alert("Welcome! Rs 100 Registration Bonus added.");
+            }
+            balance = s.val().balance || 0;
+            wager = s.val().wager || 0;
             document.getElementById('uBal').innerText = balance.toFixed(2); 
+            document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager Played:</b> Rs ${wager}/5000<br><b>Status:</b> ${wager >= 5000 ? 'Verified ✅' : 'Wager Pending ⚠️'}`;
         });
         start7sTimer();
     }
@@ -166,8 +162,10 @@ function start7sTimer() {
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
 
-    if(document.getElementById('auto1').checked) autoPlace(1);
-    if(document.getElementById('auto2').checked) autoPlace(2);
+    setTimeout(() => {
+        if(document.getElementById('auto1').checked && !b1.active) placeBetLogic(1);
+        if(document.getElementById('auto2').checked && !b2.active) placeBetLogic(2);
+    }, 500);
 
     let itv = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
@@ -176,15 +174,15 @@ function start7sTimer() {
     }, 1000);
 }
 
-function autoPlace(id) {
+function placeBetLogic(id) {
     const amt = parseFloat(document.getElementById('amt' + id).value);
     if(amt <= balance && isWaiting) {
         let b = id === 1 ? b1 : b2;
-        db.ref('users/'+uid).update({balance: balance - amt});
+        let newWager = wager + amt;
+        db.ref('users/'+uid).update({balance: balance - amt, wager: newWager});
         b.active = true; b.amt = amt; b.cashed = false;
         document.getElementById('btn' + id).innerText = "CANCEL";
         document.getElementById('btn' + id).style.background = "#991b1b";
-        logH(`Auto Bet Placed: Rs ${amt}`);
     }
 }
 
@@ -204,7 +202,7 @@ function launchPlane() {
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
         document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
-        if(Math.random() < 0.013) crash();
+        if(Math.random() < 0.0135) crash();
     }, 100);
 }
 
@@ -213,7 +211,6 @@ function crash() {
     document.getElementById('mVal').innerText = "FLEW AWAY!";
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
-    
     const tag = document.createElement('div');
     tag.className = 'h-tag'; tag.innerText = mult.toFixed(2) + 'x';
     document.getElementById('hBar').prepend(tag);
@@ -232,18 +229,11 @@ function handleBet(id) {
     const btn = document.getElementById('btn' + id);
     const amt = parseFloat(document.getElementById('amt' + id).value);
 
-    if(isWaiting && !b.active) {
-        if(amt > balance) return alert("Low Balance!");
-        db.ref('users/'+uid).update({balance: balance - amt});
-        b.active = true; b.amt = amt; b.cashed = false;
-        btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
-        logH(`Bet Placed: Rs ${amt}`);
-    } 
+    if(isWaiting && !b.active) placeBetLogic(id);
     else if(isWaiting && b.active) {
-        db.ref('users/'+uid).update({balance: balance + b.amt});
+        db.ref('users/'+uid).update({balance: balance + b.amt, wager: wager - b.amt});
         b.active = false;
         btn.innerText = "BET"; btn.style.background = "#28a745";
-        logH(`Bet Cancelled: Rs ${b.amt}`);
     }
     else if(isFlying && b.active && !b.cashed) {
         let win = b.amt * mult;
@@ -251,7 +241,7 @@ function handleBet(id) {
         b.cashed = true;
         btn.innerText = "WON Rs " + win.toFixed(0);
         btn.style.background = "#155724";
-        addWinRow("Waseem", b.amt, mult.toFixed(2));
+        addWinRow(userEmail.split('@')[0], b.amt, mult.toFixed(2));
         logH(`Won: Rs ${win.toFixed(0)} at ${mult.toFixed(2)}x`);
     }
 }
@@ -265,23 +255,24 @@ function addWinRow(u, b, x) {
 
 function logH(msg) {
     const div = document.getElementById('uHistory');
-    const time = new Date().toLocaleTimeString();
-    div.innerHTML = `<div style="border-bottom:1px solid #222; padding:5px;">[${time}] ${msg}</div>` + div.innerHTML;
+    div.innerHTML = `<div style="border-bottom:1px solid #222; padding:5px;">${msg}</div>` + div.innerHTML;
 }
 
 function submitDep() {
     const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
     if(!a || !t) return alert("Fill all fields");
-    db.ref('requests').push({uid, amount: a, tid: t, type: 'deposit', status: 'pending', email: document.getElementById('uGmail').innerText});
-    alert("Deposit Request Sent!"); toggleTab();
+    db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'});
+    alert("Sent!"); toggleTab();
 }
 
 function submitWit() {
     const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
-    if(a < 500 || a > balance) return alert("Invalid Amount (Min 500)");
-    db.ref('requests').push({uid, amount: a, number: n, type: 'withdraw', status: 'pending', email: document.getElementById('uGmail').innerText});
+    if(a < 500) return alert("Min Withdraw is Rs 500");
+    if(wager < 5000) return alert("Shart: Khel kar 5000 ka Wager pura karein! (Current: Rs " + wager + ")");
+    if(a > balance) return alert("Low balance");
+    db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
     db.ref('users/'+uid).update({balance: balance - a});
-    alert("Withdrawal Request Sent!"); toggleTab();
+    alert("Requested!"); toggleTab();
 }
 </script>
 </body>
