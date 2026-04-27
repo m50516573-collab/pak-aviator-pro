@@ -39,6 +39,13 @@
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:12px; border-left:4px solid var(--gold); margin-bottom:15px; line-height:1.5; }
+        
+        /* Status List CSS */
+        .status-item { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #444; font-size: 12px; }
+        .status-pending { border-color: var(--gold); color: var(--gold); }
+        .status-approved { border-color: var(--win); color: var(--win); }
+        .status-rejected { border-color: var(--red); color: var(--red); }
+
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -94,8 +101,8 @@
         <div class="inst-box">
             <b>Till ID: 983199695</b><br>
             <b>Method 1 (App):</b> Login App > Till Payment > Enter ID.<br>
-            <b>Method 2 (Code):</b> Dial *786# > Payments > Merchant > Enter ID.<br>
-            Paise bhej kar TID yahan likhen.
+            <b>Method 2 (Code):</b> Dial *786*10#  Ya *786# Agay 10 likhay > Enter Till ID.<br>
+            Paise bhej kar TID/ Transction ID yahan likhen.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="Transaction ID (TID)" class="b-input" style="width:100%;">
@@ -119,8 +126,9 @@
     <div id="profileTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3>MY PROFILE</h3>
-        <div id="profData"></div>
-        <div id="uHistory"></div>
+        <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
+        <h4 style="color: var(--blue);">REQUEST STATUS</h4>
+        <div id="uStatusList">Loading history...</div>
     </div>
 </div>
 
@@ -132,7 +140,13 @@ const auth = firebase.auth(), db = firebase.database();
 let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1042;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 
-function toggleTab(id) { document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); if(id) document.getElementById(id).style.display = 'block'; }
+function toggleTab(id) { 
+    document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); 
+    if(id) {
+        document.getElementById(id).style.display = 'block';
+        if(id === 'profileTab') loadStatusHistory();
+    }
+}
 
 function login() {
     const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
@@ -149,12 +163,33 @@ auth.onAuthStateChanged(user => {
             if(!s.exists()) db.ref('users/'+uid).set({email: userEmail, balance: 100, wager: 0});
             balance = s.val().balance || 0; wager = s.val().wager || 0;
             document.getElementById('uBal').innerText = balance.toFixed(2);
-            document.getElementById('profData').innerHTML = `Email: ${userEmail}<br>Wager: ${wager}/5000`;
+            document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager Done:</b> Rs ${wager.toFixed(0)} / 5000`;
         });
         start7sTimer();
         startFakeWinners();
     }
 });
+
+// Naya Function: Status Check karne ke liye
+function loadStatusHistory() {
+    const listDiv = document.getElementById('uStatusList');
+    db.ref('requests').orderByChild('uid').equalTo(uid).on('value', snapshot => {
+        if(!snapshot.exists()) {
+            listDiv.innerHTML = "No recent requests.";
+            return;
+        }
+        let html = "";
+        snapshot.forEach(child => {
+            const req = child.val();
+            const sClass = req.status === 'pending' ? 'status-pending' : (req.status === 'approved' || req.status === 'paid' ? 'status-approved' : 'status-rejected');
+            html = `<div class="status-item ${sClass}">
+                        <b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>
+                        Status: <b>${req.status.toUpperCase()}</b>
+                    </div>` + html;
+        });
+        listDiv.innerHTML = html;
+    });
+}
 
 function start7sTimer() {
     let t = 7; isWaiting = true; isFlying = false;
