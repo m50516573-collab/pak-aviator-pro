@@ -20,8 +20,8 @@
 
         .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; height: 35px; scrollbar-width: none; }
         .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; height: fit-content; flex-shrink: 0; }
-        .h-high { color: #9c27b0; border-color: #9c27b0; } /* Purple for 10x+ */
-        .h-mid { color: var(--blue); border-color: var(--blue); } /* Blue for 2x-9x */
+        .h-high { color: #9c27b0; border-color: #9c27b0; }
+        .h-mid { color: var(--blue); border-color: var(--blue); }
 
         .arena { height: 220px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #mVal { font-size: 50px; font-weight: 900; z-index: 10; }
@@ -42,10 +42,9 @@
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:12px; border-left:4px solid var(--gold); margin-bottom:15px; line-height:1.5; }
         
-        .status-item { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #444; font-size: 12px; }
-        .status-pending { border-color: var(--gold); color: var(--gold); }
-        .status-approved { border-color: var(--win); color: var(--win); }
-        .status-rejected { border-color: var(--red); color: var(--red); }
+        /* New Bonus Popup Styles */
+        #bonus-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; background: #1e1f26; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; z-index: 5000; text-align: center; box-shadow: 0 0 20px var(--gold); }
+        .bonus-btn { background: var(--gold); color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
     </style>
@@ -59,6 +58,13 @@
         <input type="password" id="l-pass" placeholder="Password" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
         <button onclick="login()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold;">LOGIN</button>
     </div>
+</div>
+
+<div id="bonus-popup">
+    <h2 style="color:var(--gold); margin:0;">💰 SPECIAL OFFER 💰</h2>
+    <p style="font-size:14px; margin:15px 0;">Abhi apna pehla deposit karen aur payein <b>100% DOUBLE BONUS!</b> Jitna deposit utna extra balance.</p>
+    <button class="bonus-btn" onclick="openDepositFromBonus()">DEPOSIT NOW</button>
+    <p onclick="closeBonus()" style="font-size:11px; color:#888; margin-top:10px; cursor:pointer;">No thanks, I'll wait</p>
 </div>
 
 <div id="app">
@@ -141,6 +147,24 @@ const auth = firebase.auth(), db = firebase.database();
 let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1042;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 
+// --- Bonus Popup Functions ---
+function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
+function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
+
+function startBonusTimer() {
+    setInterval(() => {
+        // Sirf tab dikhaye jab koi overlay na khula ho aur user logged in ho
+        const overlays = document.querySelectorAll('.overlay');
+        let anyOpen = false;
+        overlays.forEach(o => { if(o.style.display === 'block') anyOpen = true; });
+        
+        if(!anyOpen && uid) {
+            document.getElementById('bonus-popup').style.display = 'block';
+        }
+    }, 120000); // Har 2 minute baad (120,000 milliseconds)
+}
+// -----------------------------
+
 function toggleTab(id) { 
     document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); 
     if(id) {
@@ -166,26 +190,22 @@ auth.onAuthStateChanged(user => {
             document.getElementById('uBal').innerText = balance.toFixed(2);
             document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager Done:</b> Rs ${wager.toFixed(0)} / 5000`;
         });
-        generateFakeHistory(); // Generate 100 fake rounds on start
+        generateFakeHistory();
         start7sTimer();
         startFakeWinners();
+        startBonusTimer(); // Start the 2-minute cycle
     }
 });
 
-// Naya Function: 100 rounds fake history generator
 function generateFakeHistory() {
     const hBar = document.getElementById('hBar');
     hBar.innerHTML = "";
     for(let i=0; i<100; i++) {
         let val;
         let rand = Math.random();
-        if(rand < 0.4) { // 40% Chance of 10x to 50x
-            val = (Math.random() * (50 - 10) + 10).toFixed(2);
-        } else if(rand < 0.7) { // 30% Chance of 2x to 9x
-            val = (Math.random() * (9 - 2) + 2).toFixed(2);
-        } else { // 30% Chance of 1x to 1.9x
-            val = (Math.random() * (1.9 - 1.0) + 1.0).toFixed(2);
-        }
+        if(rand < 0.4) val = (Math.random() * (50 - 10) + 10).toFixed(2);
+        else if(rand < 0.7) val = (Math.random() * (9 - 2) + 2).toFixed(2);
+        else val = (Math.random() * (1.9 - 1.0) + 1.0).toFixed(2);
         addHistoryTag(val);
     }
 }
@@ -281,7 +301,7 @@ function crash() {
     document.getElementById('mVal').innerText = "FLEW AWAY!";
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
-    addHistoryTag(mult.toFixed(2)); // Add real round result to history
+    addHistoryTag(mult.toFixed(2));
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
         b.active = false; b.cashed = false;
