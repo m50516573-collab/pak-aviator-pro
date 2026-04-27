@@ -61,11 +61,8 @@
         <h2 id="auth-title" style="color:var(--red)">AVIATOR LOGIN</h2>
         <input type="email" id="l-email" placeholder="Email" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
         <input type="password" id="l-pass" placeholder="Password" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
-        
-        <button id="auth-btn" onclick="login()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold;">LOGIN</button>
-        
+        <button id="auth-btn" onclick="handleAuth()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold;">LOGIN</button>
         <span class="auth-link" id="toggle-link" onclick="toggleAuthMode()">Don't have an account? Register</span>
-        <span class="auth-link" onclick="forgotPassword()" style="color:#888; text-decoration:none;">Forgot Password?</span>
     </div>
 </div>
 
@@ -85,16 +82,13 @@
             <button onclick="toggleTab('witTab')" style="background:var(--blue);">WITHDRAW</button>
         </div>
     </div>
-
     <div class="history-bar" id="hBar"></div>
     <div class="arena">
         <div id="tBox">Next Round: 7s</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
     </div>
-
     <div class="live-stats"><span>LIVE PLAYERS</span><span style="color:var(--win); font-weight:bold;">● <span id="pCount">1042</span></span></div>
-
     <div class="controls-grid">
         <div class="bet-box">
             <input type="number" id="amt1" value="100" class="b-input">
@@ -114,12 +108,7 @@
     <div id="depTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--gold); text-align:center;">DEPOSIT (JAZZCASH)</h3>
-        <div class="inst-box">
-            <b>Till ID: 983199695</b><br>
-            <b>Method 1 (App):</b> Login App > Till Payment > Enter ID.<br>
-            <b>Method 2 (Code):</b> Dial *786*10# Ya *786# Agay 10 likhay > Enter Till ID.<br>
-            Paise bhej kar TID/ Transction ID yahan likhen.
-        </div>
+        <div class="inst-box"><b>Till ID: 983199695</b><br>Method 1: App > Till Payment.<br>Method 2: *786*10#</div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="Transaction ID (TID)" class="b-input" style="width:100%;">
         <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT DEPOSIT</button>
@@ -128,12 +117,6 @@
     <div id="witTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
-        <div class="inst-box" style="border-left-color: var(--blue);">
-            - Min Withdraw: Rs 500.<br>
-            - Wager Shart: Rs 5000.<br>
-            - Payment Time: 24 to 48 Hours.<br>
-            Apna account number sahi se check kar len.
-        </div>
         <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="wNum" placeholder="JazzCash Account Number" class="b-input" style="width:100%;">
         <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">SUBMIT REQUEST</button>
@@ -144,7 +127,7 @@
         <h3>MY PROFILE</h3>
         <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
         <h4 style="color: var(--blue);">REQUEST STATUS</h4>
-        <div id="uStatusList">Loading history...</div>
+        <div id="uStatusList"></div>
     </div>
 </div>
 
@@ -153,228 +136,128 @@ const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "
 firebase.initializeApp(conf);
 const auth = firebase.auth(), db = firebase.database();
 
-let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1042;
+let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, isLoginMode = true;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
-let isLoginMode = true;
 
-// --- NAYE FUNCTIONS ---
+// --- FIXED AUTH LOGIC ---
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
-    const title = document.getElementById('auth-title');
-    const btn = document.getElementById('auth-btn');
-    const link = document.getElementById('toggle-link');
-    
+    document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR REGISTER";
+    document.getElementById('auth-title').style.color = isLoginMode ? "var(--red)" : "var(--win)";
+    document.getElementById('auth-btn').innerText = isLoginMode ? "LOGIN" : "CREATE ACCOUNT";
+    document.getElementById('auth-btn').style.background = isLoginMode ? "var(--red)" : "var(--win)";
+    document.getElementById('toggle-link').innerText = isLoginMode ? "Don't have an account? Register" : "Already have an account? Login";
+}
+
+function handleAuth() {
+    const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
+    if(!e || !p) return alert("Fill all fields");
     if(isLoginMode) {
-        title.innerText = "AVIATOR LOGIN";
-        title.style.color = "var(--red)";
-        btn.innerText = "LOGIN";
-        btn.style.background = "var(--red)";
-        btn.setAttribute("onclick", "login()");
-        link.innerText = "Don't have an account? Register";
+        auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
     } else {
-        title.innerText = "AVIATOR REGISTER";
-        title.style.color = "var(--win)";
-        btn.innerText = "CREATE ACCOUNT";
-        btn.style.background = "var(--win)";
-        btn.setAttribute("onclick", "register()");
-        link.innerText = "Already have an account? Login";
+        if(p.length < 6) return alert("Min 6 char password");
+        auth.createUserWithEmailAndPassword(e, p).then(res => {
+            db.ref('users/' + res.user.uid).set({email: e, balance: 100, wager: 0});
+        }).catch(err => alert(err.message));
     }
-}
-
-function register() {
-    const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-    if(p.length < 6) return alert("Password kam az kam 6 characters ka hona chahiye.");
-    auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
-}
-
-function forgotPassword() {
-    const e = document.getElementById('l-email').value;
-    if(!e) return alert("Pehle apni email likhen.");
-    auth.sendPasswordResetEmail(e).then(() => alert("Password reset link aapki email par bhej diya gaya hai!")).catch(err => alert(err.message));
-}
-// --- END NAYE FUNCTIONS ---
-
-function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
-function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
-
-function startBonusTimer() {
-    setInterval(() => {
-        const overlays = document.querySelectorAll('.overlay');
-        let anyOpen = false;
-        overlays.forEach(o => { if(o.style.display === 'block') anyOpen = true; });
-        if(!anyOpen && uid) { document.getElementById('bonus-popup').style.display = 'block'; }
-    }, 120000); 
-}
-
-function toggleTab(id) { 
-    document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); 
-    if(id) {
-        document.getElementById(id).style.display = 'block';
-        if(id === 'profileTab') loadStatusHistory();
-    }
-}
-
-function login() {
-    const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-    auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
 }
 
 auth.onAuthStateChanged(user => {
     if(user) {
         uid = user.uid; userEmail = user.email;
-        document.getElementById('uGmail').innerText = userEmail;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        db.ref('users/' + uid).on('value', s => { 
-            if(!s.exists()) db.ref('users/'+uid).set({email: userEmail, balance: 100, wager: 0});
-            balance = s.val().balance || 0; wager = s.val().wager || 0;
-            document.getElementById('uBal').innerText = balance.toFixed(2);
-            document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager Done:</b> Rs ${wager.toFixed(0)} / 5000`;
+        document.getElementById('uGmail').innerText = userEmail;
+        db.ref('users/' + uid).on('value', s => {
+            if(s.exists()) {
+                balance = s.val().balance || 0; wager = s.val().wager || 0;
+                document.getElementById('uBal').innerText = balance.toFixed(2);
+                document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
+            }
         });
-        generateFakeHistory();
-        start7sTimer();
-        startFakeWinners();
-        startBonusTimer();
+        generateFakeHistory(); start7sTimer(); startFakeWinners(); startBonusTimer();
     }
 });
 
+// Game functions (generateFakeHistory, start7sTimer, launchPlane, handleBet etc.)
+function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
+function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
+function startBonusTimer() { setInterval(() => { if(uid) document.getElementById('bonus-popup').style.display = 'block'; }, 120000); }
+function toggleTab(id) { document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); if(id) document.getElementById(id).style.display = 'block'; }
+
 function generateFakeHistory() {
-    const hBar = document.getElementById('hBar');
-    hBar.innerHTML = "";
-    for(let i=0; i<100; i++) {
-        let val;
-        let rand = Math.random();
-        if(rand < 0.4) val = (Math.random() * (50 - 10) + 10).toFixed(2);
-        else if(rand < 0.7) val = (Math.random() * (9 - 2) + 2).toFixed(2);
-        else val = (Math.random() * (1.9 - 1.0) + 1.0).toFixed(2);
-        addHistoryTag(val);
-    }
+    const hBar = document.getElementById('hBar'); hBar.innerHTML = "";
+    for(let i=0; i<20; i++) addHistoryTag((Math.random() * 5 + 1).toFixed(2));
 }
-
 function addHistoryTag(val) {
-    const hBar = document.getElementById('hBar');
-    const tag = document.createElement('div');
-    tag.className = 'h-tag';
-    if(val >= 10) tag.classList.add('h-high');
-    else if(val >= 2) tag.classList.add('h-mid');
-    tag.innerText = val + 'x';
-    hBar.prepend(tag);
-}
-
-function loadStatusHistory() {
-    const listDiv = document.getElementById('uStatusList');
-    db.ref('requests').orderByChild('uid').equalTo(uid).on('value', snapshot => {
-        if(!snapshot.exists()) { listDiv.innerHTML = "No recent requests."; return; }
-        let html = "";
-        snapshot.forEach(child => {
-            const req = child.val();
-            const sClass = req.status === 'pending' ? 'status-pending' : (req.status === 'approved' || req.status === 'paid' || req.status === 'completed' ? 'status-approved' : 'status-rejected');
-            html = `<div class="status-item ${sClass}"><b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>Status: <b>${req.status.toUpperCase()}</b></div>` + html;
-        });
-        listDiv.innerHTML = html;
-    });
+    const tag = document.createElement('div'); tag.className = 'h-tag';
+    if(val >= 10) tag.classList.add('h-high'); else if(val >= 2) tag.classList.add('h-mid');
+    tag.innerText = val + 'x'; document.getElementById('hBar').prepend(tag);
 }
 
 function start7sTimer() {
     let t = 7; isWaiting = true; isFlying = false;
-    currentPlayers = Math.floor(Math.random() * (1200 - 900) + 900);
-    document.getElementById('pCount').innerText = currentPlayers;
     document.getElementById('tBox').style.display = 'block';
     document.getElementById('plane').style.display = 'none';
     document.getElementById('mVal').innerText = "WAITING";
-    document.getElementById('mVal').style.color = "white";
-    if(document.getElementById('auto1').checked) autoPlace(1);
-    if(document.getElementById('auto2').checked) autoPlace(2);
     let itv = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
-        t--;
-        if(t < 0) { clearInterval(itv); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
+        if(t-- <= 0) { clearInterval(itv); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
     }, 1000);
-}
-
-function autoPlace(id) {
-    const amt = parseFloat(document.getElementById('amt' + id).value);
-    if(amt <= balance && isWaiting) {
-        let b = id === 1 ? b1 : b2;
-        db.ref('users/'+uid).update({balance: balance - amt, wager: wager + amt});
-        b.active = true; b.amt = amt; b.cashed = false;
-        document.getElementById('btn' + id).innerText = "CANCEL";
-        document.getElementById('btn' + id).style.background = "#991b1b";
-    }
 }
 
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
-    let userHasBet = b1.active || b2.active;
     document.getElementById('plane').style.display = 'block';
-    [1, 2].forEach(id => {
-        let b = id === 1 ? b1 : b2;
-        if(b.active) { document.getElementById('btn' + id).innerText = "CASH OUT"; document.getElementById('btn' + id).style.background = "orange"; }
-    });
-
     const loop = setInterval(() => {
         if(!isFlying) { clearInterval(loop); return; }
-        mult += 0.01;
-        document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
-        document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
-        document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
-        
-        if(currentPlayers > 10 && Math.random() < 0.3) {
-            currentPlayers -= Math.floor(Math.random() * 5) + 1;
-            document.getElementById('pCount').innerText = currentPlayers;
-        }
-
-        let crashChance = 0.013; 
-        if (!userHasBet) {
-            if (mult < 7.0) crashChance = 0.002; 
-            else crashChance = 0.025;
-        } else {
-            crashChance = 0.016; 
-        }
-
-        [1, 2].forEach(id => {
-            let b = id === 1 ? b1 : b2;
-            let targetX = parseFloat(document.getElementById('autoX' + id).value);
-            if(b.active && !b.cashed && targetX > 0 && mult >= targetX) handleBet(id);
-        });
-
-        if(Math.random() < crashChance) crash();
+        mult += 0.01; document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+        document.getElementById('plane').style.left = (10 + (mult * 2)) + "%";
+        if(Math.random() < 0.015) crash();
     }, 100);
 }
 
 function crash() {
-    isFlying = false;
-    document.getElementById('mVal').innerText = "FLEW AWAY!";
-    document.getElementById('mVal').style.color = "red";
-    document.getElementById('plane').style.display = 'none';
+    isFlying = false; document.getElementById('mVal').innerText = "FLEW AWAY!";
     addHistoryTag(mult.toFixed(2));
-    [1, 2].forEach(id => {
-        let b = id === 1 ? b1 : b2;
-        b.active = false; b.cashed = false;
-        document.getElementById('btn' + id).innerText = "BET";
-        document.getElementById('btn' + id).style.background = "#28a745";
+    [1, 2].forEach(id => { 
+        let b = id === 1 ? b1 : b2; b.active = false; 
+        document.getElementById('btn'+id).innerText = "BET";
+        document.getElementById('btn'+id).style.background = "#28a745";
     });
     setTimeout(start7sTimer, 3000);
 }
 
 function handleBet(id) {
-    let b = id === 1 ? b1 : b2;
-    const btn = document.getElementById('btn' + id);
-    const amt = parseFloat(document.getElementById('amt' + id).value);
+    let b = id === 1 ? b1 : b2; const amt = parseFloat(document.getElementById('amt'+id).value);
     if(isWaiting && !b.active) {
         if(amt > balance) return alert("Low Balance");
         db.ref('users/'+uid).update({balance: balance - amt, wager: wager + amt});
-        b.active = true; b.amt = amt; b.cashed = false;
-        btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
+        b.active = true; b.amt = amt;
+        document.getElementById('btn'+id).innerText = "CANCEL";
+        document.getElementById('btn'+id).style.background = "red";
     } else if(isFlying && b.active && !b.cashed) {
-        let win = b.amt * mult;
-        db.ref('users/'+uid).update({balance: balance + win});
-        b.cashed = true;
-        btn.innerText = "WON Rs " + win.toFixed(0);
-        btn.style.background = "#155724";
-        addWinRow(userEmail.split('@')[0], b.amt, mult.toFixed(2));
+        let win = b.amt * mult; db.ref('users/'+uid).update({balance: balance + win});
+        b.cashed = true; document.getElementById('btn'+id).innerText = "WON!";
     }
 }
 
-function addWinRow(u, b, x) {
-    const row = document.createElement('d
+function startFakeWinners() {
+    setInterval(() => {
+        if(isFlying) {
+            const row = document.createElement('div'); row.className = 'win-row';
+            row.innerHTML = `<span>User***</span><span>Rs 100</span><span style="color:var(--win)">${mult.toFixed(2)}x</span>`;
+            document.getElementById('winRows').prepend(row);
+        }
+    }, 2000);
+}
+
+function submitDep() {
+    const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
+    db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'});
+    alert("Sent!"); toggleTab();
+}
+</script>
+</body>
+                </html>
+    
