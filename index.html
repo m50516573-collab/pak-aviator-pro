@@ -157,7 +157,7 @@ let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWait
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true;
 
-// --- NEW AUTH FUNCTIONS ---
+// --- NAYE FUNCTIONS ---
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
     const title = document.getElementById('auth-title');
@@ -183,16 +183,16 @@ function toggleAuthMode() {
 
 function register() {
     const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-    if(p.length < 6) return alert("Password must be at least 6 characters.");
+    if(p.length < 6) return alert("Password kam az kam 6 characters ka hona chahiye.");
     auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
 }
 
 function forgotPassword() {
     const e = document.getElementById('l-email').value;
-    if(!e) return alert("Please enter your email first.");
-    auth.sendPasswordResetEmail(e).then(() => alert("Password reset link sent to your email!")).catch(err => alert(err.message));
+    if(!e) return alert("Pehle apni email likhen.");
+    auth.sendPasswordResetEmail(e).then(() => alert("Password reset link aapki email par bhej diya gaya hai!")).catch(err => alert(err.message));
 }
-// --- END NEW AUTH FUNCTIONS ---
+// --- END NAYE FUNCTIONS ---
 
 function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
 function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
@@ -377,4 +377,4 @@ function handleBet(id) {
 }
 
 function addWinRow(u, b, x) {
-    const row = document.createElement('div'); row.cl
+    const row = document.createElement('d
