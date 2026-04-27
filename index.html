@@ -18,9 +18,11 @@
         .nav-btns { display: flex; gap: 6px; }
         .nav-btns button { padding: 8px 10px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; }
 
-        .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; height: 35px; }
-        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; height: fit-content; }
-        
+        .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; height: 35px; scrollbar-width: none; }
+        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; height: fit-content; flex-shrink: 0; }
+        .h-high { color: #9c27b0; border-color: #9c27b0; } /* Purple for 10x+ */
+        .h-mid { color: var(--blue); border-color: var(--blue); } /* Blue for 2x-9x */
+
         .arena { height: 220px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #mVal { font-size: 50px; font-weight: 900; z-index: 10; }
         #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); transition: all 0.1s linear; }
@@ -164,10 +166,39 @@ auth.onAuthStateChanged(user => {
             document.getElementById('uBal').innerText = balance.toFixed(2);
             document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager Done:</b> Rs ${wager.toFixed(0)} / 5000`;
         });
+        generateFakeHistory(); // Generate 100 fake rounds on start
         start7sTimer();
         startFakeWinners();
     }
 });
+
+// Naya Function: 100 rounds fake history generator
+function generateFakeHistory() {
+    const hBar = document.getElementById('hBar');
+    hBar.innerHTML = "";
+    for(let i=0; i<100; i++) {
+        let val;
+        let rand = Math.random();
+        if(rand < 0.4) { // 40% Chance of 10x to 50x
+            val = (Math.random() * (50 - 10) + 10).toFixed(2);
+        } else if(rand < 0.7) { // 30% Chance of 2x to 9x
+            val = (Math.random() * (9 - 2) + 2).toFixed(2);
+        } else { // 30% Chance of 1x to 1.9x
+            val = (Math.random() * (1.9 - 1.0) + 1.0).toFixed(2);
+        }
+        addHistoryTag(val);
+    }
+}
+
+function addHistoryTag(val) {
+    const hBar = document.getElementById('hBar');
+    const tag = document.createElement('div');
+    tag.className = 'h-tag';
+    if(val >= 10) tag.classList.add('h-high');
+    else if(val >= 2) tag.classList.add('h-mid');
+    tag.innerText = val + 'x';
+    hBar.prepend(tag);
+}
 
 function loadStatusHistory() {
     const listDiv = document.getElementById('uStatusList');
@@ -211,10 +242,9 @@ function autoPlace(id) {
     }
 }
 
-// Yahan Teasing Logic add kiya gaya hai
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
-    let userHasBet = b1.active || b2.active; // Check if user put money
+    let userHasBet = b1.active || b2.active;
     document.getElementById('plane').style.display = 'block';
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
@@ -228,13 +258,11 @@ function launchPlane() {
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
         document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
         
-        let crashChance = 0.013; // Normal risk
+        let crashChance = 0.013; 
         if (!userHasBet) {
-            // Teasing Mode: Jab bet na ho to 7x-20x tak le jao
             if (mult < 7.0) crashChance = 0.002; 
             else crashChance = 0.025;
         } else {
-            // Real Mode: Jab bet ho to normal rakho ya thora sakht
             crashChance = 0.016; 
         }
 
@@ -253,9 +281,7 @@ function crash() {
     document.getElementById('mVal').innerText = "FLEW AWAY!";
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
-    const tag = document.createElement('div');
-    tag.className = 'h-tag'; tag.innerText = mult.toFixed(2) + 'x';
-    document.getElementById('hBar').prepend(tag);
+    addHistoryTag(mult.toFixed(2)); // Add real round result to history
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
         b.active = false; b.cashed = false;
