@@ -40,7 +40,6 @@
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:12px; border-left:4px solid var(--gold); margin-bottom:15px; line-height:1.5; }
         
-        /* Status List CSS */
         .status-item { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #444; font-size: 12px; }
         .status-pending { border-color: var(--gold); color: var(--gold); }
         .status-approved { border-color: var(--win); color: var(--win); }
@@ -101,7 +100,7 @@
         <div class="inst-box">
             <b>Till ID: 983199695</b><br>
             <b>Method 1 (App):</b> Login App > Till Payment > Enter ID.<br>
-            <b>Method 2 (Code):</b> Dial *786*10#  Ya *786# Agay 10 likhay > Enter Till ID.<br>
+            <b>Method 2 (Code):</b> Dial *786*10# Ya *786# Agay 10 likhay > Enter Till ID.<br>
             Paise bhej kar TID/ Transction ID yahan likhen.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
@@ -170,22 +169,15 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// Naya Function: Status Check karne ke liye
 function loadStatusHistory() {
     const listDiv = document.getElementById('uStatusList');
     db.ref('requests').orderByChild('uid').equalTo(uid).on('value', snapshot => {
-        if(!snapshot.exists()) {
-            listDiv.innerHTML = "No recent requests.";
-            return;
-        }
+        if(!snapshot.exists()) { listDiv.innerHTML = "No recent requests."; return; }
         let html = "";
         snapshot.forEach(child => {
             const req = child.val();
             const sClass = req.status === 'pending' ? 'status-pending' : (req.status === 'approved' || req.status === 'paid' ? 'status-approved' : 'status-rejected');
-            html = `<div class="status-item ${sClass}">
-                        <b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>
-                        Status: <b>${req.status.toUpperCase()}</b>
-                    </div>` + html;
+            html = `<div class="status-item ${sClass}"><b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>Status: <b>${req.status.toUpperCase()}</b></div>` + html;
         });
         listDiv.innerHTML = html;
     });
@@ -199,10 +191,8 @@ function start7sTimer() {
     document.getElementById('plane').style.display = 'none';
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
-
     if(document.getElementById('auto1').checked) autoPlace(1);
     if(document.getElementById('auto2').checked) autoPlace(2);
-
     let itv = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
         t--;
@@ -221,8 +211,10 @@ function autoPlace(id) {
     }
 }
 
+// Yahan Teasing Logic add kiya gaya hai
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
+    let userHasBet = b1.active || b2.active; // Check if user put money
     document.getElementById('plane').style.display = 'block';
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
@@ -236,9 +228,14 @@ function launchPlane() {
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
         document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
         
-        if(currentPlayers > 100 && Math.random() < 0.3) {
-            currentPlayers -= Math.floor(Math.random() * 5);
-            document.getElementById('pCount').innerText = currentPlayers;
+        let crashChance = 0.013; // Normal risk
+        if (!userHasBet) {
+            // Teasing Mode: Jab bet na ho to 7x-20x tak le jao
+            if (mult < 7.0) crashChance = 0.002; 
+            else crashChance = 0.025;
+        } else {
+            // Real Mode: Jab bet ho to normal rakho ya thora sakht
+            crashChance = 0.016; 
         }
 
         [1, 2].forEach(id => {
@@ -247,7 +244,7 @@ function launchPlane() {
             if(b.active && !b.cashed && targetX > 0 && mult >= targetX) handleBet(id);
         });
 
-        if(Math.random() < 0.013) crash();
+        if(Math.random() < crashChance) crash();
     }, 100);
 }
 
@@ -288,11 +285,9 @@ function handleBet(id) {
 }
 
 function addWinRow(u, b, x) {
-    const row = document.createElement('div');
-    row.className = 'win-row';
+    const row = document.createElement('div'); row.className = 'win-row';
     row.innerHTML = `<span>${u}***</span><span>Rs ${b}</span><span style="color:var(--win)">${x}x</span>`;
-    const list = document.getElementById('winRows');
-    list.prepend(row);
+    const list = document.getElementById('winRows'); list.prepend(row);
     if(list.children.length > 15) list.lastChild.remove();
 }
 
