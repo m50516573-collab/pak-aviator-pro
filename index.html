@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aviator Pro - Fixed Logic</title>
+    <title>Aviator Pro - Final Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -12,27 +12,31 @@
         body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow-x: hidden; }
         #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
         
+        /* Header Fix */
         .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; gap: 8px; }
         .u-info { font-size: 10px; color: var(--blue); flex: 1; min-width: 80px; }
         .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 10px; color: var(--win); font-weight: 800; font-size: 13px; background: rgba(0,0,0,0.3); margin: 0 5px; text-align: center; min-width: 85px; }
         .nav-btns { display: flex; gap: 6px; flex-shrink: 0; }
         .nav-btns button { padding: 8px 10px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; white-space: nowrap; }
 
+        /* History */
         .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; white-space: nowrap; }
         .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; }
         
+        /* Arena */
         .arena { height: 220px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #mVal { font-size: 50px; font-weight: 900; z-index: 10; }
-        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); transition: all 0.1s linear; }
+        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
         #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 10px 20px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
 
-        .live-stats { background: #1b1c21; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid #333; }
+        /* Controls */
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
         .bet-box { background: #14151b; padding: 10px; border-radius: 15px; border: 1px solid #333; text-align: center; }
         .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px; font-size: 16px; }
         .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); box-shadow: 0 3px #1e7e34; }
-        .auto-label { font-size: 10px; color: #888; display: block; margin-top: 5px; }
+        .auto-label { font-size: 10px; color: #888; display: block; margin-top: 5px; cursor: pointer; }
 
+        .live-stats { background: #1b1c21; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid #333; }
         .winners-list { background: #0a0a0a; padding: 10px; min-height: 150px; font-size: 11px; }
         .win-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
@@ -86,9 +90,28 @@
 
     <div class="winners-list" id="winRows"></div>
 
-    <div id="depTab" class="overlay">...</div>
-    <div id="witTab" class="overlay">...</div>
-    <div id="profileTab" class="overlay">...</div>
+    <div id="depTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3 style="color:var(--gold); text-align:center;">DEPOSIT (JAZZCASH)</h3>
+        <p style="font-size:12px;">Till ID: <b>983199695</b> (Muhammad Shop)</p>
+        <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
+        <input type="text" id="dTid" placeholder="Transaction ID (TID)" class="b-input" style="width:100%;">
+        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT</button>
+    </div>
+
+    <div id="witTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3 style="color:var(--blue); text-align:center;">WITHDRAWAL</h3>
+        <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
+        <input type="text" id="wNum" placeholder="Account Number" class="b-input" style="width:100%;">
+        <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">REQUEST</button>
+    </div>
+
+    <div id="profileTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3>MY PROFILE</h3>
+        <div id="profData"></div>
+    </div>
 </div>
 
 <script>
@@ -112,7 +135,11 @@ auth.onAuthStateChanged(user => {
         document.getElementById('uGmail').innerText = user.email;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        db.ref('users/' + uid).on('value', s => { balance = s.val().balance; document.getElementById('uBal').innerText = balance.toFixed(2); });
+        db.ref('users/' + uid).on('value', s => { 
+            if(!s.exists()) db.ref('users/'+uid).set({email: user.email, balance: 0});
+            balance = s.val().balance; 
+            document.getElementById('uBal').innerText = balance.toFixed(2); 
+        });
         start7sTimer();
     }
 });
@@ -125,9 +152,9 @@ function start7sTimer() {
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
 
-    // Auto Bet Logic
-    if(document.getElementById('auto1').checked && !b1.active) autoPlace(1);
-    if(document.getElementById('auto2').checked && !b2.active) autoPlace(2);
+    // Auto Bet Trigger
+    if(document.getElementById('auto1').checked) autoPlace(1);
+    if(document.getElementById('auto2').checked) autoPlace(2);
 
     let itv = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
@@ -138,25 +165,26 @@ function start7sTimer() {
 
 function autoPlace(id) {
     const amt = parseFloat(document.getElementById('amt' + id).value);
-    if(amt <= balance) {
+    if(amt <= balance && isWaiting) {
         let b = id === 1 ? b1 : b2;
         db.ref('users/'+uid).update({balance: balance - amt});
         b.active = true; b.amt = amt; b.cashed = false;
-        const btn = document.getElementById('btn' + id);
-        btn.innerText = "WAITING..."; btn.style.background = "#666";
+        document.getElementById('btn' + id).innerText = "CANCEL";
+        document.getElementById('btn' + id).style.background = "#991b1b";
     }
 }
 
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
-    
-    // Update buttons for those who placed bets
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
         if(b.active) {
             const btn = document.getElementById('btn' + id);
             btn.innerText = "CASH OUT"; btn.style.background = "orange";
+        } else {
+            const btn = document.getElementById('btn' + id);
+            btn.innerText = "WAITING..."; btn.style.background = "#444";
         }
     });
 
@@ -164,12 +192,7 @@ function launchPlane() {
         if(!isFlying) { clearInterval(loop); return; }
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
-        
-        // Plane Animation
-        document.getElementById('plane').style.left = (10 + (mult * 2)) + "%";
-        document.getElementById('plane').style.bottom = (15 + (mult * 1.5)) + "%";
-
-        if(Math.random() < 0.012) { crash(); }
+        if(Math.random() < 0.0125) crash();
     }, 100);
 }
 
@@ -179,17 +202,15 @@ function crash() {
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
     
-    // Add history
     const tag = document.createElement('div');
     tag.className = 'h-tag'; tag.innerText = mult.toFixed(2) + 'x';
     document.getElementById('hBar').prepend(tag);
 
-    // Reset Bets
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
         b.active = false; b.cashed = false;
-        const btn = document.getElementById('btn' + id);
-        btn.innerText = "BET"; btn.style.background = "#28a745";
+        document.getElementById('btn' + id).innerText = "BET";
+        document.getElementById('btn' + id).style.background = "#28a745";
     });
 
     setTimeout(start7sTimer, 3000);
@@ -200,25 +221,22 @@ function handleBet(id) {
     const btn = document.getElementById('btn' + id);
     const amt = parseFloat(document.getElementById('amt' + id).value);
 
-    // 1. Placing Bet (Only in Waiting)
     if(isWaiting && !b.active) {
         if(amt > balance) return alert("Low Balance!");
         db.ref('users/'+uid).update({balance: balance - amt});
         b.active = true; b.amt = amt; b.cashed = false;
         btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
     } 
-    // 2. Cancelling Bet (Only in Waiting)
     else if(isWaiting && b.active) {
         db.ref('users/'+uid).update({balance: balance + b.amt});
         b.active = false;
         btn.innerText = "BET"; btn.style.background = "#28a745";
     }
-    // 3. Cash Out (Only when Flying)
     else if(isFlying && b.active && !b.cashed) {
         let win = b.amt * mult;
         db.ref('users/'+uid).update({balance: balance + win});
         b.cashed = true;
-        b.active = false; // Is round ke liye khatam
+        // Button won't allow re-bet until crash resets b.active
         btn.innerText = "WON Rs " + win.toFixed(0);
         btn.style.background = "#155724";
         addWinRow("Waseem", b.amt, mult.toFixed(2));
@@ -230,6 +248,20 @@ function addWinRow(u, b, x) {
     row.className = 'win-row';
     row.innerHTML = `<span>${u}</span><span>Rs ${b}</span><span style="color:var(--win)">${x}x</span>`;
     document.getElementById('winRows').prepend(row);
+}
+
+function submitDep() {
+    const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
+    db.ref('requests').push({uid, amount: a, tid: t, type: 'deposit', status: 'pending'});
+    alert("Sent!"); toggleTab();
+}
+
+function submitWit() {
+    const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
+    if(a < 500 || a > balance) return alert("Check Amount!");
+    db.ref('requests').push({uid, amount: a, number: n, type: 'withdraw', status: 'pending'});
+    db.ref('users/'+uid).update({balance: balance - a});
+    alert("Requested!"); toggleTab();
 }
 </script>
 </body>
