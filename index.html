@@ -42,7 +42,13 @@
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:12px; border-left:4px solid var(--gold); margin-bottom:15px; line-height:1.5; }
         
-        /* New Bonus Popup Styles */
+        /* Status Color Grading Re-added */
+        .status-item { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #444; font-size: 12px; }
+        .status-pending { border-color: var(--gold); color: var(--gold); }
+        .status-approved { border-color: var(--win); color: var(--win); }
+        .status-rejected { border-color: var(--red); color: var(--red); }
+
+        /* Bonus Popup Styles */
         #bonus-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; background: #1e1f26; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; z-index: 5000; text-align: center; box-shadow: 0 0 20px var(--gold); }
         .bonus-btn { background: var(--gold); color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
 
@@ -147,23 +153,17 @@ const auth = firebase.auth(), db = firebase.database();
 let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1042;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 
-// --- Bonus Popup Functions ---
 function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
 function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
 
 function startBonusTimer() {
     setInterval(() => {
-        // Sirf tab dikhaye jab koi overlay na khula ho aur user logged in ho
         const overlays = document.querySelectorAll('.overlay');
         let anyOpen = false;
         overlays.forEach(o => { if(o.style.display === 'block') anyOpen = true; });
-        
-        if(!anyOpen && uid) {
-            document.getElementById('bonus-popup').style.display = 'block';
-        }
-    }, 120000); // Har 2 minute baad (120,000 milliseconds)
+        if(!anyOpen && uid) { document.getElementById('bonus-popup').style.display = 'block'; }
+    }, 120000); 
 }
-// -----------------------------
 
 function toggleTab(id) { 
     document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); 
@@ -193,7 +193,7 @@ auth.onAuthStateChanged(user => {
         generateFakeHistory();
         start7sTimer();
         startFakeWinners();
-        startBonusTimer(); // Start the 2-minute cycle
+        startBonusTimer();
     }
 });
 
@@ -227,7 +227,8 @@ function loadStatusHistory() {
         let html = "";
         snapshot.forEach(child => {
             const req = child.val();
-            const sClass = req.status === 'pending' ? 'status-pending' : (req.status === 'approved' || req.status === 'paid' ? 'status-approved' : 'status-rejected');
+            // Fixing Color Grading for Request Status
+            const sClass = req.status === 'pending' ? 'status-pending' : (req.status === 'approved' || req.status === 'paid' || req.status === 'completed' ? 'status-approved' : 'status-rejected');
             html = `<div class="status-item ${sClass}"><b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>Status: <b>${req.status.toUpperCase()}</b></div>` + html;
         });
         listDiv.innerHTML = html;
