@@ -91,18 +91,29 @@
     <div id="depTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--gold); text-align:center;">DEPOSIT (JAZZCASH)</h3>
-        <div class="inst-box"><b>Till ID: 983199695</b></div>
+        <div class="inst-box">
+            <b>Till ID: 983199695</b><br>
+            <b>Method 1 (App):</b> Login App > Till Payment > Enter ID.<br>
+            <b>Method 2 (Code):</b> Dial *786# > Payments > Merchant > Enter ID.<br>
+            Paise bhej kar TID yahan likhen.
+        </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
-        <input type="text" id="dTid" placeholder="TID" class="b-input" style="width:100%;">
-        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT</button>
+        <input type="text" id="dTid" placeholder="Transaction ID (TID)" class="b-input" style="width:100%;">
+        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT DEPOSIT</button>
     </div>
 
     <div id="witTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
+        <div class="inst-box" style="border-left-color: var(--blue);">
+            - Min Withdraw: Rs 500.<br>
+            - Wager Shart: Rs 5000.<br>
+            - Payment Time: 24 to 48 Hours.<br>
+            Apna account number sahi se check kar len.
+        </div>
         <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
-        <input type="text" id="wNum" placeholder="Account Number" class="b-input" style="width:100%;">
-        <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">SUBMIT</button>
+        <input type="text" id="wNum" placeholder="JazzCash Account Number" class="b-input" style="width:100%;">
+        <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">SUBMIT REQUEST</button>
     </div>
 
     <div id="profileTab" class="overlay">
@@ -190,13 +201,11 @@ function launchPlane() {
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
         document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
         
-        // Players count decreasing
         if(currentPlayers > 100 && Math.random() < 0.3) {
             currentPlayers -= Math.floor(Math.random() * 5);
             document.getElementById('pCount').innerText = currentPlayers;
         }
 
-        // Auto Cash-out Logic
         [1, 2].forEach(id => {
             let b = id === 1 ? b1 : b2;
             let targetX = parseFloat(document.getElementById('autoX' + id).value);
@@ -266,17 +275,17 @@ function startFakeWinners() {
 
 function submitDep() {
     const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(!a || !t) return alert("Error");
+    if(!a || !t) return alert("Fill all details!");
     db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'});
-    alert("Sent!"); toggleTab();
+    alert("Deposit Request Sent!"); toggleTab();
 }
 
 function submitWit() {
     const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
-    if(a < 500 || wager < 5000 || a > balance) return alert("Wait! Check Wager or Balance");
+    if(a < 500 || wager < 5000 || a > balance) return alert("Check Balance or Wager Limit!");
     db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
     db.ref('users/'+uid).update({balance: balance - a});
-    alert("Sent!"); toggleTab();
+    alert("Withdrawal Request Sent!"); toggleTab();
 }
 </script>
 </body>
