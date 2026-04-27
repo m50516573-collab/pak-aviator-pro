@@ -51,16 +51,21 @@
         .bonus-btn { background: var(--gold); color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .auth-link { color: var(--blue); font-size: 12px; margin-top: 15px; cursor: pointer; display: block; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <div style="width:80%; text-align:center;">
-        <h2 style="color:var(--red)">AVIATOR LOGIN</h2>
+    <div id="auth-box" style="width:80%; text-align:center;">
+        <h2 id="auth-title" style="color:var(--red)">AVIATOR LOGIN</h2>
         <input type="email" id="l-email" placeholder="Email" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
         <input type="password" id="l-pass" placeholder="Password" style="width:100%; padding:12px; margin:10px 0; border-radius:10px; background:#000; border:1px solid #444; color:#fff;">
-        <button onclick="login()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold;">LOGIN</button>
+        
+        <button id="auth-btn" onclick="login()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold;">LOGIN</button>
+        
+        <span class="auth-link" id="toggle-link" onclick="toggleAuthMode()">Don't have an account? Register</span>
+        <span class="auth-link" onclick="forgotPassword()" style="color:#888; text-decoration:none;">Forgot Password?</span>
     </div>
 </div>
 
@@ -150,6 +155,44 @@ const auth = firebase.auth(), db = firebase.database();
 
 let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1042;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
+let isLoginMode = true;
+
+// --- NEW AUTH FUNCTIONS ---
+function toggleAuthMode() {
+    isLoginMode = !isLoginMode;
+    const title = document.getElementById('auth-title');
+    const btn = document.getElementById('auth-btn');
+    const link = document.getElementById('toggle-link');
+    
+    if(isLoginMode) {
+        title.innerText = "AVIATOR LOGIN";
+        title.style.color = "var(--red)";
+        btn.innerText = "LOGIN";
+        btn.style.background = "var(--red)";
+        btn.setAttribute("onclick", "login()");
+        link.innerText = "Don't have an account? Register";
+    } else {
+        title.innerText = "AVIATOR REGISTER";
+        title.style.color = "var(--win)";
+        btn.innerText = "CREATE ACCOUNT";
+        btn.style.background = "var(--win)";
+        btn.setAttribute("onclick", "register()");
+        link.innerText = "Already have an account? Login";
+    }
+}
+
+function register() {
+    const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
+    if(p.length < 6) return alert("Password must be at least 6 characters.");
+    auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
+}
+
+function forgotPassword() {
+    const e = document.getElementById('l-email').value;
+    if(!e) return alert("Please enter your email first.");
+    auth.sendPasswordResetEmail(e).then(() => alert("Password reset link sent to your email!")).catch(err => alert(err.message));
+}
+// --- END NEW AUTH FUNCTIONS ---
 
 function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
 function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
@@ -276,7 +319,6 @@ function launchPlane() {
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
         document.getElementById('plane').style.bottom = (15 + (mult * 2)) + "%";
         
-        // --- Live Player Reduction logic ---
         if(currentPlayers > 10 && Math.random() < 0.3) {
             currentPlayers -= Math.floor(Math.random() * 5) + 1;
             document.getElementById('pCount').innerText = currentPlayers;
@@ -335,38 +377,4 @@ function handleBet(id) {
 }
 
 function addWinRow(u, b, x) {
-    const row = document.createElement('div'); row.className = 'win-row';
-    row.innerHTML = `<span>${u}***</span><span>Rs ${b}</span><span style="color:var(--win)">${x}x</span>`;
-    const list = document.getElementById('winRows'); list.prepend(row);
-    if(list.children.length > 15) list.lastChild.remove();
-}
-
-function startFakeWinners() {
-    const names = ["ali","khan","user","player","mian","pro","boss","lucky","win","star"];
-    setInterval(() => {
-        if(isFlying && Math.random() < 0.4) {
-            let n = names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*99);
-            let a = Math.floor(Math.random()*500) + 100;
-            let x = (Math.random()*(mult - 1.01) + 1.01).toFixed(2);
-            addWinRow(n, a, x);
-        }
-    }, 2000);
-}
-
-function submitDep() {
-    const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(!a || !t) return alert("Fill all details!");
-    db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'});
-    alert("Deposit Request Sent!"); toggleTab();
-}
-
-function submitWit() {
-    const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
-    if(a < 500 || wager < 5000 || a > balance) return alert("Check Balance or Wager Limit!");
-    db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
-    db.ref('users/'+uid).update({balance: balance - a});
-    alert("Withdrawal Request Sent!"); toggleTab();
-}
-</script>
-</body>
-    </html>
+    const row = document.createElement('div'); row.cl
