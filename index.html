@@ -13,9 +13,7 @@
                 window.location.replace(url.toString());
             }
         })();
-        window.onerror = function() { 
-            return true; 
-        };
+        window.onerror = function() { return true; };
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -23,549 +21,244 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
     <style>
-        :root { 
-            --red: #ea0606; 
-            --bg: #12131a; 
-            --card: #1e1f26; 
-            --win: #28a745; 
-            --blue: #34b4ff; 
-            --gold: #f2a900; 
-            --vip-purple: #9c27b0; 
-        }
-        body { 
-            margin: 0; 
-            background: #000; 
-            color: white; 
-            font-family: 'Roboto', sans-serif; 
-            overflow-x: hidden; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        #app { 
-            max-width: 450px; 
-            margin: auto; 
-            background: var(--bg); 
-            min-height: 100vh; 
-            position: relative; 
-            display: none; 
-        }
-        
-        #auth-screen { 
-            position: fixed; 
-            inset: 0; 
-            background: var(--bg); 
-            z-index: 2000; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        .auth-card { 
-            width: 85%; 
-            text-align: center; 
-            background: var(--card); 
-            padding: 25px; 
-            border-radius: 20px; 
-            border: 1px solid #333; 
-        }
-        .auth-input { 
-            width: 90%; 
-            padding: 12px; 
-            margin: 8px 0; 
-            border-radius: 10px; 
-            background: #000; 
-            border: 1px solid #444; 
-            color: #fff; 
-            font-size: 14px; 
-            outline: none; 
-        }
-        .auth-btn { 
-            width: 100%; 
-            padding: 14px; 
-            background: var(--red); 
-            border: none; 
-            border-radius: 10px; 
-            color: #fff; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 10px; 
-        }
-        .auth-toggle { 
-            font-size: 12px; 
-            color: #888; 
-            margin-top: 15px; 
-            cursor: pointer; 
-            text-decoration: underline; 
-        }
-
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 12px 10px; 
-            background: #1b1c21; 
-            align-items: center; 
-            border-bottom: 1px solid #333; 
-            gap: 8px; 
-        }
-        .u-info { 
-            font-size: 10px; 
-            color: var(--blue); 
-            flex: 1; 
-        }
-        .bal-box { 
-            border: 1.5px solid var(--win); 
-            border-radius: 20px; 
-            padding: 4px 12px; 
-            color: var(--win); 
-            font-weight: 800; 
-            font-size: 14px; 
-            background: rgba(0,0,0,0.3); 
-        }
-        .nav-btns { 
-            display: flex; 
-            gap: 6px; 
-        }
-        .nav-btns button { 
-            padding: 8px 12px; 
-            border-radius: 6px; 
-            border: none; 
-            font-size: 10px; 
-            font-weight: bold; 
-            color: white; 
-            cursor: pointer; 
-        }
-
-        .history-bar { 
-            display: flex; 
-            gap: 6px; 
-            padding: 10px 8px; 
-            background: #050505; 
-            overflow-x: auto; 
-            scrollbar-width: none; 
-            min-height: 25px; 
-            justify-content: flex-start; 
-            align-items: center; 
-        }
-        .h-tag { 
-            padding: 3px 10px; 
-            border-radius: 50px; 
-            font-size: 11px; 
-            font-weight: 900; 
-            background: #222; 
-            border: 1px solid #444; 
-            flex-shrink: 0; 
-            min-width: 45px; 
-            text-align: center; 
-        }
+        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; --vip-purple: #9c27b0; }
+        body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { width: 85%; text-align: center; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; }
+        .auth-input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 10px; background: #000; border: 1px solid #444; color: #fff; font-size: 14px; outline: none; }
+        .auth-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; }
+        .u-info { font-size: 10px; color: var(--blue); }
+        .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; font-size: 14px; }
+        .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; min-height: 25px; }
+        .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; }
         .h-blue { color: var(--blue); border-color: var(--blue); }
         .h-purple { color: var(--vip-purple); border-color: var(--vip-purple); }
-        .h-gold { color: var(--gold); border-color: var(--gold); text-shadow: 0 0 5px var(--gold); }
-
-        .arena { 
-            height: 230px; 
-            background: radial-gradient(circle at bottom left, #1c1d21, #000); 
-            position: relative; 
-            overflow: hidden; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        #mVal { 
-            font-size: 55px; 
-            font-weight: 900; 
-            z-index: 10; 
-            text-shadow: 0 0 15px rgba(255,255,255,0.2); 
-            transition: color 0.2s; 
-        }
-        #plane { 
-            position: absolute; 
-            font-size: 45px; 
-            bottom: 15%; 
-            left: 10%; 
-            z-index: 5; 
-            display: none; 
-            filter: drop-shadow(0 0 10px red); 
-        }
-        #tBox { 
-            position: absolute; 
-            background: rgba(0,0,0,0.85); 
-            padding: 12px 25px; 
-            border-radius: 50px; 
-            border: 2px solid var(--win); 
-            color: var(--win); 
-            font-weight: bold; 
-            z-index: 20; 
-            display: none; 
-        }
-        
-        #super-jet-ui { 
-            position: absolute; 
-            top: 15%; 
-            color: var(--gold); 
-            font-weight: 900; 
-            font-size: 18px; 
-            text-shadow: 0 0 10px orange; 
-            display: none; 
-            animation: blink 0.6s infinite; 
-            z-index: 30; 
-        }
-        @keyframes blink { 
-            0% {opacity: 1;} 
-            50% {opacity: 0.3;} 
-            100% {opacity: 1;} 
-        }
-
-        #win-pop { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            background: rgba(40, 167, 69, 0.95); 
-            padding: 15px 30px; 
-            border-radius: 50px; 
-            border: 2px solid #fff; 
-            box-shadow: 0 0 20px #28a745; 
-            z-index: 100; 
-            display: none; 
-            text-align: center; 
-        }
-
-        .controls-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 8px; 
-            padding: 10px; 
-            background: var(--card); 
-        }
-        .bet-box { 
-            background: #14151b; 
-            padding: 12px; 
-            border-radius: 15px; 
-            border: 1px solid #333; 
-            text-align: center; 
-        }
-        .b-input { 
-            width: 90%; 
-            background: #000; 
-            border: 1px solid #444; 
-            color: white; 
-            padding: 10px; 
-            border-radius: 8px; 
-            text-align: center; 
-            margin-bottom: 8px; 
-            font-size: 14px; 
-        }
-        .b-btn { 
-            width: 100%; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            font-weight: 900; 
-            color: white; 
-            cursor: pointer; 
-            background: var(--win); 
-            transition: 0.2s; 
-        }
-        
-        .live-stats { 
-            background: #1b1c21; 
-            padding: 8px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 12px; 
-            border-top: 1px solid #333; 
-        }
-        .winners-list { 
-            background: #0a0a0a; 
-            padding: 10px; 
-            min-height: 250px; 
-            font-size: 11px; 
-            height: 250px; 
-            overflow-y: auto; 
-        }
-        .win-row { 
-            display: grid; 
-            grid-template-columns: 1.5fr 1fr 1fr; 
-            padding: 8px 0; 
-            border-bottom: 1px solid #1a1a1a; 
-        }
-
-        .overlay { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.95); 
-            z-index: 1000; 
-            padding: 20px; 
-            overflow-y: auto; 
-        }
-        .close-btn { 
-            float: right; 
-            font-size: 30px; 
-            cursor: pointer; 
-            color: var(--red); 
-        }
-        .inst-box { 
-            background:#111; 
-            padding:15px; 
-            border-radius:10px; 
-            font-size:13px; 
-            border-left:4px solid var(--gold); 
-            margin-bottom:15px; 
-            color: #ccc; 
-            line-height: 1.6; 
-        }
-        .status-item { 
-            background: #222; 
-            padding: 12px; 
-            border-radius: 10px; 
-            margin-bottom: 10px; 
-            border-left: 5px solid #444; 
-            font-size: 12px; 
-        }
+        .h-gold { color: var(--gold); border-color: var(--gold); }
+        .arena { height: 230px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #mVal { font-size: 55px; font-weight: 900; z-index: 10; }
+        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; }
+        #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); z-index: 20; display: none; }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
+        .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
+        .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+        .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; background: var(--win); }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
+        .status-item { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #444; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h2 id="auth-title" style="color:var(--red); margin:0 0 15px 0;">AVIATOR LOGIN</h2>
+        <h2 id="auth-title" style="color:var(--red);">AVIATOR LOGIN</h2>
         <input type="email" id="auth-email" class="auth-input" placeholder="Email">
         <input type="password" id="auth-pass" class="auth-input" placeholder="Password">
-        <button id="auth-main-btn" onclick="handleAuth()" class="auth-btn">LOGIN</button>
-        <p id="auth-toggle-text" class="auth-toggle" onclick="toggleAuthMode()">No account? Create one</p>
+        <button onclick="handleAuth()" class="auth-btn">LOGIN</button>
+        <p style="font-size:12px; color:#888; cursor:pointer;" onclick="toggleAuthMode()">Toggle Login/Signup</p>
     </div>
 </div>
 
 <div id="app">
     <div class="header">
-        <div class="u-info">
-            <span id="uGmail">Loading...</span><br>
-            <button onclick="toggleTab('profileTab')" style="background:none; border:none; color:var(--blue); font-size:10px; padding:0; cursor:pointer;">MY PROFILE 👤</button>
-        </div>
+        <div class="u-info"><span id="uGmail">...</span><br><span onclick="toggleTab('profileTab')" style="cursor:pointer">PROFILE 👤</span></div>
         <div class="bal-box">Rs <span id="uBal">0.00</span></div>
-        <div class="nav-btns">
-            <button onclick="toggleTab('depTab')" style="background:var(--win);">DEPOSIT</button>
-            <button onclick="toggleTab('witTab')" style="background:var(--blue);">WITHDRAW</button>
+        <div>
+            <button onclick="toggleTab('depTab')" style="background:var(--win); color:white; border:none; padding:5px 10px; border-radius:5px;">DEP</button>
+            <button onclick="toggleTab('witTab')" style="background:var(--blue); color:white; border:none; padding:5px 10px; border-radius:5px;">WIT</button>
         </div>
     </div>
 
     <div class="history-bar" id="hBar"></div>
 
     <div class="arena">
-        <div id="super-jet-ui">🚀 SUPER JET MODE ACTIVE!</div>
         <div id="tBox">Next Round: 7s</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
-        <div id="win-pop">
-            <div style="font-size:12px; color:white;">YOU CASHED OUT!</div>
-            <div id="pop-win-val" style="font-size:24px; font-weight:bold;">0.00x</div>
-        </div>
     </div>
 
-    <div class="live-stats">
+    <div style="padding:5px 15px; font-size:12px; display:flex; justify-content:space-between;">
         <span>ALL BETS</span>
-        <span style="color:var(--win); font-weight:bold;">● <span id="pCount">0</span></span>
+        <span style="color:var(--win)">● <span id="pCount">0</span></span>
     </div>
 
     <div class="controls-grid">
         <div class="bet-box">
             <input type="number" id="amt1" value="100" class="b-input">
-            <input type="number" id="autoX1" placeholder="Auto 2.0" class="b-input">
             <button id="btn1" onclick="handleBet(1)" class="b-btn">BET</button>
-            <label style="font-size:10px;"><input type="checkbox" id="auto1"> Auto Bet</label>
         </div>
         <div class="bet-box">
             <input type="number" id="amt2" value="100" class="b-input">
-            <input type="number" id="autoX2" placeholder="Auto 2.0" class="b-input">
             <button id="btn2" onclick="handleBet(2)" class="b-btn">BET</button>
-            <label style="font-size:10px;"><input type="checkbox" id="auto2"> Auto Bet</label>
         </div>
     </div>
 
-    <div class="winners-list" id="winRows"></div>
-
     <div id="depTab" class="overlay">
-        <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3 style="color:var(--gold); text-align:center;">JAZZCASH DEPOSIT</h3>
-        <div class="inst-box">
-            <b>NAME: MUHAMMAD SHOP</b><br>
-            <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
-            <b>Instructions:</b><br>
-            1. Dial <b style="color:var(--gold)">*786*10#</b> from your mobile.<br>
-            2. Enter Till ID: <b>983199695</b>.<br>
-            3. Enter Amount and your JazzCash Pin.<br>
-            4. Copy TID from SMS and submit below.
-        </div>
-        <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
-        <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
-        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT DEPOSIT</button>
+        <span style="float:right; cursor:pointer" onclick="toggleTab()">× Close</span>
+        <h3>DEPOSIT</h3>
+        <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%"><br>
+        <input type="text" id="dTid" placeholder="TID" class="b-input" style="width:100%"><br>
+        <button onclick="submitDep()" class="b-btn">SUBMIT</button>
     </div>
 
     <div id="witTab" class="overlay">
-        <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
-        <div class="inst-box">Min Rs 500 | Wager Rs 5000</div>
-        <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
-        <input type="text" id="wNum" placeholder="JazzCash Number" class="b-input" style="width:100%;">
-        <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">WITHDRAW</button>
+        <span style="float:right; cursor:pointer" onclick="toggleTab()">× Close</span>
+        <h3>WITHDRAW</h3>
+        <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%"><br>
+        <input type="text" id="wNum" placeholder="Number" class="b-input" style="width:100%"><br>
+        <button onclick="submitWit()" class="b-btn" style="background:var(--blue)">WITHDRAW</button>
     </div>
 
     <div id="profileTab" class="overlay">
-        <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3>MY PROFILE</h3>
-        <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
-        <button onclick="auth.signOut()" class="auth-btn" style="margin-bottom:20px;">LOGOUT</button>
-        <h4 style="color:var(--blue)">REQUEST HISTORY</h4>
-        <div id="uStatusList">No history found.</div>
+        <span style="float:right; cursor:pointer" onclick="toggleTab()">× Close</span>
+        <h3>HISTORY</h3>
+        <div id="uStatusList">Loading...</div>
+        <button onclick="auth.signOut()" class="auth-btn">LOGOUT</button>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-        databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-    };
+    const firebaseConfig = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+    const auth = firebase.auth(), db = firebase.database();
 
-    const flySnd = new Audio('https://files.catbox.moe/6797x7.mp3');
-    const crashSnd = new Audio('https://files.catbox.moe/9v9r38.mp3');
-    const winSnd = new Audio('https://files.catbox.moe/v6p5at.mp3');
-    const boostSnd = new Audio('https://files.catbox.moe/19p4v4.mp3');
+    let uid, balance = 0, wager = 0, depBal = 0, mult = 1.0, isFlying = false, isWaiting = true;
+    let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
+    let isLoginMode = true, crashPoint = 1.10;
 
-    let uid, userEmail, balance = 0, wager = 0, depBal = 0;
-    let mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 0;
-    let b1 = { active: false, amt: 0, cashed: false };
-    let b2 = { active: false, amt: 0, cashed: false };
-    let isLoginMode = true, isSuperJet = false;
-
-    let betSequence = [], betIndex = 0, userEarlyCashout = false, crashPoint = 1.0;
-    const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "nomi", "sunny", "bilal"];
-    const pakAmts = [200, 500, 1000, 2000, 5000];
-
-    function generateSequence() {
-        let pool = [
-            () => (Math.random() * 5 + 10).toFixed(2),  
-            () => (Math.random() * 15 + 15).toFixed(2), 
-            () => 1.00, () => 1.00,
-            () => 1.10, 
-            () => (Math.random() * 0.3 + 1.2).toFixed(2), 
-            () => (Math.random() * 0.3 + 1.2).toFixed(2),
-            () => (Math.random() * 0.3 + 1.2).toFixed(2),
-            () => (Math.random() * 3 + 2).toFixed(2),  
-            () => (Math.random() * 5 + 5).toFixed(2)   
-        ];
-        betSequence = pool.sort(() => Math.random() - 0.5);
-        betIndex = 0;
-    }
-    generateSequence();
-
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
-        document.getElementById('auth-toggle-text').innerText = isLoginMode ? "No account? Create one" : "Already have account? Login";
-    }
+    function toggleAuthMode() { isLoginMode = !isLoginMode; document.getElementById('auth-title').innerText = isLoginMode ? "LOGIN" : "SIGNUP"; }
 
     function handleAuth() {
-        const e = document.getElementById('auth-email').value;
-        const p = document.getElementById('auth-pass').value;
-        if(!e || !p) return alert("Fill fields");
-        if(isLoginMode) {
-            auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
-        } else {
-            auth.createUserWithEmailAndPassword(e, p).then(res => {
-                db.ref('users/' + res.user.uid).set({ 
-                    email: e, 
-                    balance: 100, 
-                    wager: 0, 
-                    depositBal: 100 
-                });
-            }).catch(err => alert(err.message));
-        }
+        const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
+        if(isLoginMode) auth.signInWithEmailAndPassword(e, p).catch(a => alert(a.message));
+        else auth.createUserWithEmailAndPassword(e, p).then(r => db.ref('users/'+r.user.uid).set({email:e, balance:100, wager:0, depositBal:100}));
     }
 
     auth.onAuthStateChanged(user => {
         if(user) {
-            uid = user.uid; 
-            userEmail = user.email;
-            document.getElementById('uGmail').innerText = userEmail;
+            uid = user.uid; document.getElementById('uGmail').innerText = user.email;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            db.ref('users/' + uid).on('value', s => {
-                if(s.exists()){
-                    balance = s.val().balance || 0; 
-                    wager = s.val().wager || 0;
-                    depBal = s.val().depositBal || 100;
+            db.ref('users/'+uid).on('value', s => {
+                if(s.exists()) {
+                    balance = s.val().balance; wager = s.val().wager; depBal = s.val().depositBal;
                     document.getElementById('uBal').innerText = balance.toFixed(2);
-                    document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
                 }
             });
-            generateFakeHistory(); 
-            start7sTimer(); 
-            startFakeWinners();
+            startTimer();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app').style.display = 'none';
         }
     });
 
-    function calculateCrashPoint() {
+    function getCrashPoint() {
+        // High Bet Security: If any bet > 499, crash early
+        if ((b1.active && b1.amt >= 500) || (b2.active && b2.amt >= 500)) return (Math.random() * 0.1 + 1.01).toFixed(2);
+        // Balance Security: If profit > 2x deposit, crash early
         if (balance >= (depBal * 2)) return 1.00;
-        if (betIndex >= 10) {
-            if (userEarlyCashout) {
-                userEarlyCashout = false;
-                generateSequence();
-                return (Math.random() * 10 + 40).toFixed(2); 
-            } else {
-                generateSequence();
-            }
-        }
-        let p = betSequence[betIndex]();
-        betIndex++;
-        return p;
+        // Normal random sequence
+        let r = Math.random();
+        if (r < 0.4) return (Math.random() * 0.2 + 1.1).toFixed(2);
+        if (r < 0.8) return (Math.random() * 2 + 1.5).toFixed(2);
+        return (Math.random() * 20 + 5).toFixed(2);
     }
 
-    function start7sTimer() {
-        let t = 7; 
-        isWaiting = true; 
-        isFlying = false; 
-        isSuperJet = false;
+    function startTimer() {
+        let t = 7; isWaiting = true; isFlying = false;
         document.getElementById('tBox').style.display = 'block';
         document.getElementById('plane').style.display = 'none';
-        document.getElementById('super-jet-ui').style.display = 'none';
         document.getElementById('mVal').innerText = "WAITING";
         document.getElementById('mVal').style.color = "white";
-        document.getElementById('plane').style.filter = "drop-shadow(0 0 10px red)";
 
-        currentPlayers = 0;
-        let targetPlayers = Math.floor(Math.random() * (1500 - 1200) + 1200);
-        let playerIncrement = setInterval(() => {
-            if (currentPlayers < targetPlayers) {
-                currentPlayers += Math.floor(targetPlayers / 70); 
-                document.getElementById('pCount').innerText = currentPlayers;
-            } else { 
-                clearInterval(playerIncrement); 
-            }
+        let pc = 0, target = Math.floor(Math.random()*300 + 1200);
+        let pi = setInterval(() => { 
+            if(pc < target) { pc += 50; document.getElementById('pCount').innerText = pc; } 
+            else clearInterval(pi);
         }, 100);
 
-        let timer = setInterval(() => {
+        let ti = setInterval(() => {
             document.getElementById('tBox').innerText = `Next Round: ${t}s`;
-            if(t <= 0) { 
-                clearInterval(timer); 
-                document.getElementById('tBox').style.display = 'none'; 
-                crashPoint = calculateCrashPoint();
-                launchPlane(); 
-            }
+            if(t <= 0) { clearInterval(ti); document.getElementById('tBox').style.display='none'; crashPoint = getCrashPoint(); startFlight(); }
             t--;
         }, 1000);
     }
 
-    function launchPlane() {
-        isWaiting = false; 
-        isFlying = true; 
-        mult = 1.0;
+    function startFlight() {
+        isWaiting = false; isFlying = true; mult = 1.0;
         document.getElementById('plane').style.display = 'block';
-        flySnd.currentTime = 0; 
-        flySnd.loop = true; 
-        flySnd.play().c
+        
+        function tick() {
+            if(!isFlying) return;
+            mult += (mult < 2) ? 0.01 : 0.05;
+            document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+            document.getElementById('plane').style.left = (10 + (mult * 2)) + "%";
+
+            [1,2].forEach(id => {
+                let b = (id==1)?b1:b2;
+                if(b.active && !b.cashed) document.getElementById('btn'+id).innerText = "CASH Rs" + (b.amt*mult).toFixed(1);
+            });
+
+            if(mult >= crashPoint) {
+                isFlying = false;
+                document.getElementById('mVal').innerText = "FLEW AWAY!";
+                document.getElementById('mVal').style.color = "red";
+                document.getElementById('plane').style.display = 'none';
+                [1,2].forEach(id => { 
+                    let b = (id==1)?b1:b2; b.active = false; b.cashed = false;
+                    document.getElementById('btn'+id).innerText = "BET";
+                    document.getElementById('btn'+id).style.background = "var(--win)";
+                });
+                addHist(crashPoint);
+                setTimeout(startTimer, 3000);
+            } else { setTimeout(tick, 100); }
+        }
+        tick();
+    }
+
+    function handleBet(id) {
+        let b = (id==1)?b1:b2, btn = document.getElementById('btn'+id), amt = parseFloat(document.getElementById('amt'+id).value);
+        if(isWaiting && !b.active) {
+            if(amt > balance || amt < 10) return alert("Low Bal");
+            db.ref('users/'+uid).update({balance: balance - amt, wager: wager + amt});
+            b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "var(--red)";
+        } else if(isFlying && b.active && !b.cashed) {
+            db.ref('users/'+uid).update({balance: balance + (b.amt * mult)});
+            b.cashed = true; btn.innerText = "WIN!"; btn.style.background = "#155724";
+        }
+    }
+
+    function addHist(v) {
+        let t = document.createElement('div'); t.className = 'h-tag';
+        if(v >= 10) t.classList.add('h-gold'); else if(v >= 2) t.classList.add('h-purple'); else t.classList.add('h-blue');
+        t.innerText = v + 'x'; document.getElementById('hBar').prepend(t);
+    }
+
+    function toggleTab(id) { document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); if(id) document.getElementById(id).style.display='block'; if(id=='profileTab') loadHist(); }
+
+    function submitDep() {
+        let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
+        if(a && t) { db.ref('requests').push({uid, amt:a, tid:t, type:'Dep', status:'pending', date:new Date().toLocaleString()}); alert("Sent"); toggleTab(); }
+    }
+
+    function submitWit() {
+        let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
+        if(a >= 500 && wager >= 5000 && balance >= a) {
+            db.ref('requests').push({uid, amt:a, num:n, type:'Wit', status:'pending', date:new Date().toLocaleString()});
+            db.ref('users/'+uid).update({balance: balance - a}); alert("Sent"); toggleTab();
+        } else alert("Check Wager/Bal");
+    }
+
+    function loadHist() {
+        db.ref('requests').orderByChild('uid').equalTo(uid).on('value', s => {
+            let h = ""; s.forEach(c => {
+                let d = c.val(), col = d.status=='approved'?'#28a745':'orange';
+                h += `<div class="status-item" style="border-left-color:${col}"><b>${d.type}</b>: Rs ${d.amt} - <span style="color:${col}">${d.status}</span></div>`;
+            });
+            document.getElementById('uStatusList').innerHTML = h || "No history";
+        });
+    }
+</script>
+</body>
+</html>
