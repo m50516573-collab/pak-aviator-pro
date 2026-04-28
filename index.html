@@ -43,7 +43,7 @@
         .auto-label { font-size: 10px; color: #888; display: block; margin-top: 5px; }
 
         .live-stats { background: #1b1c21; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; }
-        .winners-list { background: #0a0a0a; padding: 10px; min-height: 200px; font-size: 11px; height: 200px; overflow-y: auto; }
+        .winners-list { background: #0a0a0a; padding: 10px; min-height: 250px; font-size: 11px; height: 250px; overflow-y: auto; }
         .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
         
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
@@ -53,7 +53,6 @@
         .status-item { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #444; font-size: 12px; }
         .status-pending { border-color: var(--gold); color: var(--gold); }
         .status-approved { border-color: var(--win); color: var(--win); }
-        .status-rejected { border-color: var(--red); color: var(--red); }
 
         #bonus-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; background: #1e1f26; border: 2px solid var(--gold); border-radius: 20px; padding: 20px; z-index: 5000; text-align: center; box-shadow: 0 0 20px var(--gold); }
     </style>
@@ -68,13 +67,6 @@
         <button id="auth-main-btn" onclick="handleAuth()" class="auth-btn">LOGIN</button>
         <p id="auth-toggle-text" class="auth-toggle" onclick="toggleAuthMode()">Don't have an account? Sign Up</p>
     </div>
-</div>
-
-<div id="bonus-popup">
-    <h2 style="color:var(--gold); margin:0;">💰 SPECIAL OFFER 💰</h2>
-    <p style="font-size:14px; margin:15px 0;">Abhi deposit karen aur payein <b>100% DOUBLE BONUS!</b></p>
-    <button onclick="openDepositFromBonus()" style="background:var(--gold); color:black; border:none; padding:10px 20px; border-radius:10px; font-weight:bold; cursor:pointer;">DEPOSIT NOW</button>
-    <p onclick="closeBonus()" style="font-size:11px; color:#888; margin-top:10px; cursor:pointer;">Close</p>
 </div>
 
 <div id="app">
@@ -98,7 +90,7 @@
         </div>
     </div>
 
-    <div class="live-stats"><span>LIVE PLAYERS</span><span style="color:var(--win); font-weight:bold;">● <span id="pCount">1245</span></span></div>
+    <div class="live-stats"><span>ALL BETS</span><span style="color:var(--win); font-weight:bold;">● <span id="pCount">1245</span></span></div>
 
     <div class="controls-grid">
         <div class="bet-box">
@@ -116,41 +108,9 @@
     </div>
     <div class="winners-list" id="winRows"></div>
 
-    <div id="depTab" class="overlay">
-        <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3 style="color:var(--gold); text-align:center;">DEPOSIT (JAZZCASH)</h3>
-        <div class="inst-box">
-            <b>NAME: MUHAMMAD SHOP</b><br>
-            <b>TILL ID: 983199695</b><hr style="border:0.5px solid #333;">
-            <b>HOW TO PAY:</b><br>
-            1. Dial <b>*786*10#</b> ya JazzCash App open karein.<br>
-            2. <b>Till Payment</b> select karein.<br>
-            3. Till ID <b>983199695</b> likhein.<br>
-            4. Name <b>Muhammad Shop</b> confirm karein.<br>
-            5. Amount bhej kar niche TID enter karein.
-        </div>
-        <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
-        <input type="text" id="dTid" placeholder="Transaction ID (TID)" class="b-input" style="width:100%;">
-        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT DEPOSIT</button>
-    </div>
-
-    <div id="witTab" class="overlay">
-        <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
-        <div class="inst-box" style="border-left-color: var(--blue);">- Min Withdraw: Rs 500.<br>- Payment: 24-48 Hours.<br>- Wager Required: Rs 5000.</div>
-        <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
-        <input type="text" id="wNum" placeholder="JazzCash Number" class="b-input" style="width:100%;">
-        <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">WITHDRAW</button>
-    </div>
-
-    <div id="profileTab" class="overlay">
-        <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3>MY PROFILE</h3>
-        <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
-        <button onclick="auth.signOut()" style="width:100%; padding:10px; background:var(--red); border:none; color:white; border-radius:5px; margin-bottom:15px;">LOGOUT</button>
-        <h4 style="color: var(--blue);">REQUEST HISTORY</h4>
-        <div id="uStatusList">Loading...</div>
-    </div>
+    <div id="depTab" class="overlay"><span class="close-btn" onclick="toggleTab()">×</span><h3 style="color:var(--gold); text-align:center;">DEPOSIT</h3><div class="inst-box"><b>NAME: MUHAMMAD SHOP</b><br><b>TILL ID: 983199695</b></div><input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;"><input type="text" id="dTid" placeholder="TID" class="b-input" style="width:100%;"><button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT</button></div>
+    <div id="witTab" class="overlay"><span class="close-btn" onclick="toggleTab()">×</span><h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3><input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;"><input type="text" id="wNum" placeholder="Number" class="b-input" style="width:100%;"><button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">WITHDRAW</button></div>
+    <div id="profileTab" class="overlay"><span class="close-btn" onclick="toggleTab()">×</span><h3>MY PROFILE</h3><div id="profData" style="background:#1b1c21; padding:15px; border-radius:10px;"></div><button onclick="auth.signOut()" class="auth-btn">LOGOUT</button><h4>HISTORY</h4><div id="uStatusList"></div></div>
 </div>
 
 <script>
@@ -159,9 +119,12 @@ firebase.initializeApp(conf);
 const auth = firebase.auth(), db = firebase.database();
 const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true;
+let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1245;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true, houseEdge = 0.016;
+
+const pakNames = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "bilal", "umer", "hadi", "shah"];
+const pakAmts = [100, 200, 500, 1000, 2500, 5000];
 
 function toggleAuthMode() { isLoginMode = !isLoginMode; document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP"; }
 
@@ -177,7 +140,6 @@ auth.onAuthStateChanged(user => {
         document.getElementById('uGmail').innerText = userEmail;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        db.ref('settings/house_edge').on('value', s => { if(s.exists()) houseEdge = s.val(); });
         db.ref('users/' + uid).on('value', s => { 
             if(s.exists()){ 
                 balance = s.val().balance || 0; wager = s.val().wager || 0; 
@@ -185,40 +147,21 @@ auth.onAuthStateChanged(user => {
                 document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
             }
         });
-        generateFakeHistory(); start7sTimer(); startFakeWinners(); startBonusTimer();
+        generateFakeHistory(); start7sTimer(); startFakeWinners();
     } else {
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app').style.display = 'none';
     }
 });
 
-function toggleTab(id) { 
-    document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); 
-    if(id) {
-        document.getElementById(id).style.display = 'block';
-        if(id === 'profileTab') loadStatusHistory();
-    }
-}
-
-function loadStatusHistory() {
-    const listDiv = document.getElementById('uStatusList');
-    db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(10).on('value', snapshot => {
-        let html = "";
-        snapshot.forEach(child => {
-            const req = child.val();
-            html = `<div class="status-item status-${req.status}"><b>${req.type.toUpperCase()}</b>: Rs ${req.amount}<br>Status: ${req.status}</div>` + html;
-        });
-        listDiv.innerHTML = html || "No history.";
-    });
-}
-
 function start7sTimer() {
     let t = 7; isWaiting = true; isFlying = false;
+    currentPlayers = Math.floor(Math.random() * 300) + 1100;
+    document.getElementById('pCount').innerText = currentPlayers;
     document.getElementById('tBox').style.display = 'block';
     document.getElementById('plane').style.display = 'none';
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
-    
     let itv = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
         if(t <= 0) { clearInterval(itv); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
@@ -230,11 +173,9 @@ function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
     [1, 2].forEach(id => {
-        let b = (id === 1 ? b1 : b2);
-        if(b.active) {
-            const btn = document.getElementById('btn'+id);
-            btn.innerText = "CASH OUT";
-            btn.style.background = "linear-gradient(to bottom, #f2a900, #b8860b)";
+        if((id===1?b1:b2).active) { 
+            document.getElementById('btn'+id).style.background = "linear-gradient(#f2a900, #b8860b)";
+            document.getElementById('btn'+id).innerText = "CASH OUT";
         }
     });
 
@@ -242,12 +183,15 @@ function launchPlane() {
         if(!isFlying) return;
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+        if(Math.random() < 0.4 && currentPlayers > 20) {
+            currentPlayers -= Math.floor(Math.random() * 10) + 5;
+            document.getElementById('pCount').innerText = currentPlayers;
+        }
         [1, 2].forEach(id => {
-            let b = (id === 1 ? b1 : b2);
+            let b = id === 1 ? b1 : b2;
             if(b.active && !b.cashed) {
                 document.getElementById('btn'+id).innerText = "CASH OUT\nRs " + (b.amt * mult).toFixed(2);
-                let tx = parseFloat(document.getElementById('autoX'+id).value);
-                if(tx > 0 && mult >= tx) handleBet(id);
+                if(parseFloat(document.getElementById('autoX'+id).value) <= mult) handleBet(id);
             }
         });
         document.getElementById('plane').style.left = (10 + (mult * 2)) + "%";
@@ -263,63 +207,75 @@ function crash() {
     document.getElementById('plane').style.display = 'none';
     addHistoryTag(mult.toFixed(2));
     [1, 2].forEach(id => {
-        let b = (id === 1 ? b1 : b2); b.active = false; b.cashed = false;
-        document.getElementById('btn'+id).innerText = "BET";
-        document.getElementById('btn'+id).style.background = "#28a745";
+        let b = id === 1 ? b1 : b2; b.active = false; b.cashed = false;
+        document.getElementById('btn'+id).innerText = "BET"; document.getElementById('btn'+id).style.background = "#28a745";
     });
     setTimeout(start7sTimer, 3000);
 }
 
 function handleBet(id) {
-    let b = (id === 1 ? b1 : b2); const btn = document.getElementById('btn'+id);
-    const amt = parseFloat(document.getElementById('amt'+id).value);
+    let b = id === 1 ? b1 : b2; const btn = document.getElementById('btn' + id);
+    const amt = parseFloat(document.getElementById('amt' + id).value);
     if(isWaiting && !b.active) {
-        if(amt > balance) return alert("Low Balance");
+        if(amt > balance) return alert("Low Bal");
         db.ref('users/'+uid).update({balance: balance - amt, wager: wager + amt});
-        b.active = true; b.amt = amt; b.cashed = false;
-        btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
+        b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
     } else if(isFlying && b.active && !b.cashed) {
         let win = b.amt * mult; db.ref('users/'+uid).update({balance: balance + win});
         b.cashed = true; btn.innerText = "WON Rs " + win.toFixed(0); btn.style.background = "#155724";
         try { cashoutSound.play(); } catch(e){}
         document.getElementById('pop-win-val').innerText = mult.toFixed(2) + "x";
         document.getElementById('win-pop').style.display = 'block';
-        setTimeout(() => { document.getElementById('win-pop').style.display = 'none'; }, 2000);
+        setTimeout(() => document.getElementById('win-pop').style.display = 'none', 2000);
         addWinRow("YOU", b.amt, mult.toFixed(2));
     }
 }
 
-function addHistoryTag(val) {
-    const tag = document.createElement('div');
-    tag.className = 'h-tag ' + (val >= 2 ? 'h-mid' : '');
-    tag.innerText = val + 'x';
-    document.getElementById('hBar').prepend(tag);
+function startFakeWinners() {
+    setInterval(() => {
+        if(isFlying && Math.random() < 0.8) {
+            let name = pakNames[Math.floor(Math.random()*pakNames.length)];
+            let fakeGmail = `${name}${Math.floor(Math.random()*999)}...@gmail.com`;
+            let fAmt = pakAmts[Math.floor(Math.random()*pakAmts.length)];
+            addWinRow(fakeGmail, fAmt, (Math.random()*(mult-1.1)+1.1).toFixed(2));
+        }
+    }, 600);
 }
 
-function generateFakeHistory() { for(let i=0; i<20; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); }
 function addWinRow(u, b, x) {
     const row = document.createElement('div'); row.className = 'win-row';
     row.innerHTML = `<span>${u}</span><span>Rs ${b}</span><span style="color:var(--win)">${x}x</span>`;
-    document.getElementById('winRows').prepend(row);
+    const list = document.getElementById('winRows'); list.prepend(row);
+    if(list.children.length > 40) list.lastChild.remove();
 }
-function startFakeWinners() { setInterval(() => { if(isFlying && Math.random() < 0.3) addWinRow("User"+Math.floor(Math.random()*99), 100, (Math.random()*mult).toFixed(2)); }, 2000); }
+
+function addHistoryTag(val) {
+    const tag = document.createElement('div'); tag.className = 'h-tag ' + (val >= 2 ? 'h-mid' : '');
+    tag.innerText = val + 'x'; document.getElementById('hBar').prepend(tag);
+}
+
+function generateFakeHistory() { for(let i=0; i<15; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); }
+function toggleTab(id) { document.querySelectorAll('.overlay').forEach(t => t.style.display = 'none'); if(id) document.getElementById(id).style.display = 'block'; if(id==='profileTab') loadStatusHistory(); }
+
+function loadStatusHistory() {
+    db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(5).on('value', s => {
+        let h = ""; s.forEach(c => { h = `<div class="status-item status-${c.val().status}"><b>${c.val().type}</b>: Rs ${c.val().amount}</div>` + h; });
+        document.getElementById('uStatusList').innerHTML = h || "No data";
+    });
+}
+
 function submitDep() { 
     const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Deposit Request Sent!"); }
-    toggleTab();
+    if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Sent!"); toggleTab(); }
 }
 function submitWit() {
     const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
     if(a >= 500 && wager >= 5000 && a <= balance) {
         db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
-        db.ref('users/'+uid).update({balance: balance - a}); alert("Withdraw Request Sent!");
-    } else { alert("Check Amount/Wager/Balance"); }
-    toggleTab();
+        db.ref('users/'+uid).update({balance: balance - a}); alert("Sent!"); toggleTab();
+    } else alert("Error");
 }
-function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
-function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
-function startBonusTimer() { setInterval(() => { if(uid) document.getElementById('bonus-popup').style.display = 'block'; }, 180000); }
 </script>
 </body>
-                                          </html>
-                
+        </html>
+    
