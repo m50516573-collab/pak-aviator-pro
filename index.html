@@ -376,7 +376,7 @@
             <input type="number" id="amt2" value="100" class="b-input">
             <input type="number" id="autoX2" placeholder="Auto 2.0" class="b-input">
             <button id="btn2" onclick="handleBet(2)" class="b-btn">BET</button>
-            <label style="font-size:10px;"><input type="checkbox" id="auto1"> Auto Bet</label>
+            <label style="font-size:10px;"><input type="checkbox" id="auto2"> Auto Bet</label>
         </div>
     </div>
 
@@ -438,27 +438,21 @@
     let b2 = { active: false, amt: 0, cashed: false };
     let isLoginMode = true, isSuperJet = false;
 
-    let betSequence = [], betIndex = 0, crashPoint = 1.0;
+    let crashPoint = 1.0;
     const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "nomi", "sunny", "bilal"];
     const pakAmts = [200, 500, 1000, 2000, 5000];
 
     function calculateCrashPoint() {
-        // --- NEW SECURITY LOGIC ---
-        // 1. If any single bet is Rs 500 or more, CRASH EARLY (Anti-Win)
         if ((b1.active && b1.amt >= 500) || (b2.active && b2.amt >= 500)) {
-            return (Math.random() * 0.1 + 1.01).toFixed(2); // Crashes between 1.01 and 1.11
+            return (Math.random() * 0.1 + 1.01).toFixed(2);
         }
-
-        // 2. If user balance is 2x of their original deposit, CRASH FAST
         if (balance >= (depBal * 2)) {
             return (1.00).toFixed(2); 
         }
-
-        // 3. Normal Random Logic
         let r = Math.random();
-        if (r < 0.4) return (Math.random() * 0.2 + 1.1).toFixed(2); // Low
-        if (r < 0.8) return (Math.random() * 2 + 1.5).toFixed(2);  // Medium
-        return (Math.random() * 15 + 5).toFixed(2);               // VIP High
+        if (r < 0.4) return (Math.random() * 0.2 + 1.1).toFixed(2);
+        if (r < 0.8) return (Math.random() * 2 + 1.5).toFixed(2);
+        return (Math.random() * 15 + 5).toFixed(2);
     }
 
     function toggleAuthMode() {
@@ -475,35 +469,25 @@
             auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
         } else {
             auth.createUserWithEmailAndPassword(e, p).then(res => {
-                db.ref('users/' + res.user.uid).set({ 
-                    email: e, 
-                    balance: 100, 
-                    wager: 0, 
-                    depositBal: 100 
-                });
+                db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0, depositBal: 100 });
             }).catch(err => alert(err.message));
         }
     }
 
     auth.onAuthStateChanged(user => {
         if(user) {
-            uid = user.uid; 
-            userEmail = user.email;
+            uid = user.uid; userEmail = user.email;
             document.getElementById('uGmail').innerText = userEmail;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             db.ref('users/' + uid).on('value', s => {
                 if(s.exists()){
-                    balance = s.val().balance || 0; 
-                    wager = s.val().wager || 0;
-                    depBal = s.val().depositBal || 100;
+                    balance = s.val().balance || 0; wager = s.val().wager || 0; depBal = s.val().depositBal || 100;
                     document.getElementById('uBal').innerText = balance.toFixed(2);
                     document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
                 }
             });
-            generateFakeHistory(); 
-            start7sTimer(); 
-            startFakeWinners();
+            generateFakeHistory(); start7sTimer(); startFakeWinners();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app').style.display = 'none';
@@ -511,28 +495,21 @@
     });
 
     function start7sTimer() {
-        let t = 7; 
-        isWaiting = true; 
-        isFlying = false; 
-        isSuperJet = false;
+        let t = 7; isWaiting = true; isFlying = false; isSuperJet = false;
         document.getElementById('tBox').style.display = 'block';
         document.getElementById('plane').style.display = 'none';
         document.getElementById('super-jet-ui').style.display = 'none';
         document.getElementById('mVal').innerText = "WAITING";
         document.getElementById('mVal').style.color = "white";
         document.getElementById('plane').style.filter = "drop-shadow(0 0 10px red)";
-
         currentPlayers = 0;
         let targetPlayers = Math.floor(Math.random() * (1500 - 1200) + 1200);
         let playerIncrement = setInterval(() => {
             if (currentPlayers < targetPlayers) {
                 currentPlayers += Math.floor(targetPlayers / 70); 
                 document.getElementById('pCount').innerText = currentPlayers;
-            } else { 
-                clearInterval(playerIncrement); 
-            }
+            } else { clearInterval(playerIncrement); }
         }, 100);
-
         let timer = setInterval(() => {
             document.getElementById('tBox').innerText = `Next Round: ${t}s`;
             if(t <= 0) { 
@@ -546,18 +523,24 @@
     }
 
     function launchPlane() {
-        isWaiting = false; 
-        isFlying = true; 
-        mult = 1.0;
+        isWaiting = false; isFlying = true; mult = 1.0;
         document.getElementById('plane').style.display = 'block';
-        flySnd.currentTime = 0; 
-        flySnd.loop = true; 
-        flySnd.play().catch(()=>{});
+        flySnd.currentTime = 0; flySnd.loop = true; flySnd.play().catch(()=>{});
         
         function engine() {
             if(!isFlying) return;
-
             if (mult >= 2.0 && !isSuperJet) {
                 isSuperJet = true;
                 document.getElementById('super-jet-ui').style.display = 'block';
-                document.getElementById('plane').style.filter = "drop-shadow(0 0 20px #f2a900) hue-rotate(4
+                document.getElementById('plane').style.filter = "drop-shadow(0 0 20px #f2a900) hue-rotate(45deg)";
+                boostSnd.play().catch(()=>{});
+            }
+            let speedBoost = isSuperJet ? 0.05 : 0.01;
+            mult += speedBoost;
+            document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+            [1, 2].forEach(id => {
+                let b = id === 1 ? b1 : b2;
+                if(b.active && !b.cashed) {
+                    document.getElementById('btn'+id).innerText = "CASH OUT\nRs " + (b.amt * mult).toFixed(2);
+                    let autoX = parseFloat(document.getElementById('autoX'+id).value);
+                    if(!isNaN(autoX) && mult >= auto
