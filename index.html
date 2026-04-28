@@ -8,11 +8,19 @@
     <script>
         (function() {
             var url = new URL(window.location.href);
+            // Force refresh if version param is missing to bypass server cache
             if (!url.searchParams.has('v')) {
                 url.searchParams.set('v', Date.now());
                 window.location.replace(url.toString());
             }
         })();
+        // Catch any loading errors and auto-reload to index.html
+        window.onerror = function(msg) {
+            if(msg.includes("Script error") || msg.includes("500") || msg.includes("Oops")) {
+                window.location.href = "index.html?v=" + Date.now();
+            }
+            return true;
+        };
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -331,6 +339,4 @@ function submitWit() {
 }
 </script>
 </body>
-            </html>
-        
-    
+</html>
