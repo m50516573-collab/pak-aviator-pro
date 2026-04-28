@@ -12,14 +12,9 @@
 
     <style>
         :root {
-            --primary: #ea0606;
-            --secondary: #12131a;
-            --accent: #28a745;
-            --blue: #34b4ff;
-            --gold: #f2a900;
-            --dark-card: #1b1c21;
-            --text-main: #ffffff;
-            --text-dim: #9ea0a3;
+            --primary: #ea0606; --secondary: #12131a; --accent: #28a745;
+            --blue: #34b4ff; --gold: #f2a900; --dark-card: #1b1c21;
+            --text-main: #ffffff; --text-dim: #9ea0a3;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -60,7 +55,6 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
 
-        /* Top Header */
         .header {
             height: 60px; display: flex; justify-content: space-between;
             align-items: center; padding: 0 15px; background: #14151b;
@@ -74,7 +68,6 @@
         }
         .bal-amt { color: #28a745; font-weight: 800; margin-left: 8px; }
 
-        /* Game Arena */
         .arena {
             height: 35vh; position: relative; overflow: hidden;
             background: #000; display: flex; align-items: center; justify-content: center;
@@ -87,18 +80,9 @@
             top: -50%; left: -50%; z-index: 1;
         }
 
-        #mVal {
-            font-size: 75px; font-weight: 900; z-index: 10;
-            text-shadow: 0 0 20px rgba(255,255,255,0.3); transition: 0.1s;
-        }
+        #mVal { font-size: 75px; font-weight: 900; z-index: 10; transition: 0.1s; }
+        #plane { position: absolute; width: 100px; z-index: 8; transition: 0.1s linear; filter: drop-shadow(0 0 10px var(--primary)); }
 
-        #plane {
-            position: absolute; width: 100px; z-index: 8;
-            transition: transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1);
-            filter: drop-shadow(0 0 10px var(--primary));
-        }
-
-        /* Betting Controls */
         .bet-controls {
             padding: 10px; display: grid; grid-template-columns: 1fr 1fr;
             gap: 10px; height: calc(65vh - 60px); background: #000;
@@ -131,9 +115,6 @@
         .btn-cashout { background: #d97706; box-shadow: inset 0 -4px 0 #92400e; }
         .btn-cancel { background: #4b5563; }
 
-        .btn-main span { font-size: 11px; font-weight: normal; opacity: 0.8; }
-
-        /* History Bar */
         .history-bar {
             height: 35px; background: #14151b; display: flex;
             align-items: center; padding: 0 10px; overflow-x: auto;
@@ -145,7 +126,6 @@
             border-radius: 10px; background: #222; color: var(--blue);
         }
 
-        /* Animations */
         @keyframes flyAway {
             0% { transform: translate(0, 0) scale(1); }
             100% { transform: translate(400px, -400px) scale(0); }
@@ -161,7 +141,6 @@
             <input type="email" id="uEmail" class="auth-input" placeholder="User ID / Email">
             <input type="password" id="uPass" class="auth-input" placeholder="Password">
             <button onclick="loginUser()" class="auth-btn">SECURE LOGIN</button>
-            <p id="auth-msg" style="color:var(--primary); font-size:12px; text-align:center;"></p>
         </div>
     </div>
 
@@ -172,86 +151,55 @@
                 <i class="fas fa-wallet" style="color:#28a745"></i>
                 <span class="bal-amt" id="userBal">0.00</span>
             </div>
-            <button onclick="openMenu()" style="background:transparent; border:none; color:white; font-size:20px;">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
 
-        <div class="history-bar" id="history">
-            </div>
+        <div class="history-bar" id="history"></div>
 
         <div class="arena">
             <div class="grid-bg"></div>
             <div id="mVal">1.00x</div>
             <img src="https://aviator-next.spribegaming.com/aviator-plane.663c6396f905541e.svg" id="plane" style="display:none;">
-            <div id="status-label" style="position:absolute; top:20px; color:var(--text-dim); font-size:12px; font-weight:bold;">WAITING FOR NEXT ROUND</div>
+            <div id="status-label" style="position:absolute; top:20px; color:var(--text-dim); font-size:12px; font-weight:bold;">READY</div>
         </div>
 
         <div class="bet-controls">
-            <div class="control-panel" id="panel1">
+            <div class="control-panel">
                 <div class="input-row">
                     <button onclick="adj(1, -50)" style="color:red; background:none; border:none; font-size:20px;">-</button>
                     <input type="number" id="amt1" value="100">
                     <button onclick="adj(1, 50)" style="color:green; background:none; border:none; font-size:20px;">+</button>
                 </div>
-                <button id="btn1" onclick="handleAction(1)" class="btn-main btn-bet">
-                    BET
-                    <span id="sub1">Rs 100.00</span>
-                </button>
+                <button id="btn1" onclick="handleAction(1)" class="btn-main btn-bet">BET <span id="sub1">Rs 100.00</span></button>
                 <div style="margin-top:8px; display:flex; justify-content:space-between; font-size:10px;">
-                    <span>AUTO CASH</span>
-                    <input type="checkbox" id="autoCheck1">
+                    <span>AUTO CASH</span> <input type="number" id="autoVal1" placeholder="2.0" style="width:40px; background:#000; border:1px solid #333; color:#fff;">
                 </div>
             </div>
 
-            <div class="control-panel" id="panel2">
+            <div class="control-panel">
                 <div class="input-row">
                     <button onclick="adj(2, -50)" style="color:red; background:none; border:none; font-size:20px;">-</button>
                     <input type="number" id="amt2" value="100">
                     <button onclick="adj(2, 50)" style="color:green; background:none; border:none; font-size:20px;">+</button>
                 </div>
-                <button id="btn2" onclick="handleAction(2)" class="btn-main btn-bet">
-                    BET
-                    <span id="sub2">Rs 100.00</span>
-                </button>
+                <button id="btn2" onclick="handleAction(2)" class="btn-main btn-bet">BET <span id="sub2">Rs 100.00</span></button>
                 <div style="margin-top:8px; display:flex; justify-content:space-between; font-size:10px;">
-                    <span>AUTO CASH</span>
-                    <input type="checkbox" id="autoCheck2">
+                    <span>AUTO CASH</span> <input type="number" id="autoVal2" placeholder="2.0" style="width:40px; background:#000; border:1px solid #333; color:#fff;">
                 </div>
             </div>
         </div>
     </div>
 
 <script>
-    // Configuration
-    const conf = { 
-        apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-        databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-    };
+    const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
     firebase.initializeApp(conf);
-    const db = firebase.database();
-    const auth = firebase.auth();
+    const db = firebase.database(), auth = firebase.auth();
 
-    // State Variables
     let uid, balance = 0, currentMult = 1.0, isFlying = false, isWaiting = true;
-    let myBets = { 
-        1: { active: false, amt: 0, cashed: false }, 
-        2: { active: false, amt: 0, cashed: false } 
-    };
+    let myBets = { 1: { active: false, amt: 0, cashed: false }, 2: { active: false, amt: 0, cashed: false } };
 
-    // --- AUTH LOGIC ---
     function loginUser() {
-        const e = document.getElementById('uEmail').value;
-        const p = document.getElementById('uPass').value;
-        if(!e || !p) return alert("Please fill details");
-        
-        auth.signInWithEmailAndPassword(e, p).catch(err => {
-            if(err.code === 'auth/user-not-found') {
-                auth.createUserWithEmailAndPassword(e, p);
-            } else {
-                alert(err.message);
-            }
-        });
+        const e = document.getElementById('uEmail').value, p = document.getElementById('uPass').value;
+        auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
     }
 
     auth.onAuthStateChanged(user => {
@@ -259,11 +207,8 @@
             uid = user.uid;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            
             db.ref('users/' + uid).on('value', s => {
-                if(!s.exists()) {
-                    db.ref('users/' + uid).set({ email: user.email, balance: 500, wager: 0 });
-                }
+                if(!s.exists()) db.ref('users/'+uid).set({email:user.email, balance:500});
                 balance = s.val().balance || 0;
                 document.getElementById('userBal').innerText = balance.toFixed(2);
             });
@@ -271,164 +216,96 @@
         }
     });
 
-    // --- CORE ENGINE SYNC ---
     function syncEngine() {
         db.ref('game_state').on('value', snap => {
-            const data = snap.val();
-            if(!data) return;
+            const data = snap.val(); if(!data) return;
+            currentMult = data.mult; isFlying = data.isFlying; isWaiting = data.isWaiting;
 
-            currentMult = data.mult;
-            isFlying = data.isFlying;
-            isWaiting = data.isWaiting;
+            const mDisp = document.getElementById('mVal'), plane = document.getElementById('plane');
 
             if(isWaiting) {
-                handleWaitingState(data.timer);
+                mDisp.innerText = "WAITING"; mDisp.style.color = "#fff";
+                plane.style.display = "none";
+                document.getElementById('status-label').innerText = "NEXT ROUND IN " + data.timer + "s";
+                resetRound();
             } else if(isFlying) {
-                handleFlyingState();
+                mDisp.innerText = currentMult.toFixed(2) + "x";
+                plane.style.display = "block";
+                plane.style.left = Math.min(10 + (currentMult * 8), 75) + "%";
+                plane.style.bottom = Math.min(10 + (currentMult * 4), 65) + "%";
+                updateLiveUI();
+                checkAuto();
             } else {
-                handleCrashState();
+                mDisp.innerText = "FLEW AWAY!"; mDisp.style.color = "#ea0606";
+                plane.style.animation = "flyAway 0.5s forwards";
+                setTimeout(() => { plane.style.display="none"; plane.style.animation=""; }, 500);
             }
         });
     }
 
-    function handleWaitingState(timer) {
-        const mDisplay = document.getElementById('mVal');
-        mDisplay.innerText = "WAITING";
-        mDisplay.style.color = "white";
-        mDisplay.style.fontSize = "40px";
-        
-        document.getElementById('plane').style.display = "none";
-        document.getElementById('status-label').innerText = "NEXT ROUND IN " + timer + "s";
-        
-        // Reset Buttons for new round
-        for(let i=1; i<=2; i++) {
-            if(!myBets[i].active) {
-                const btn = document.getElementById('btn'+i);
-                btn.className = "btn-main btn-bet";
-                btn.innerHTML = `BET <span id="sub${i}">Rs ${document.getElementById('amt'+i).value}</span>`;
-            }
-        }
-    }
-
-    function handleFlyingState() {
-        const mDisplay = document.getElementById('mVal');
-        mDisplay.innerText = currentMult.toFixed(2) + "x";
-        mDisplay.style.color = "white";
-        mDisplay.style.fontSize = "75px";
-        
-        const plane = document.getElementById('plane');
-        plane.style.display = "block";
-        
-        // Advanced Movement Logic
-        let moveX = Math.min(currentMult * 15, 70);
-        let moveY = Math.min(currentMult * 10, 60);
-        plane.style.left = moveX + "%";
-        plane.style.bottom = moveY + "%";
-
-        document.getElementById('status-label').innerText = "PLANE IS FLYING";
-        
-        updateLiveButtons();
-        checkAutoCashout();
-    }
-
-    function handleCrashState() {
-        const mDisplay = document.getElementById('mVal');
-        mDisplay.innerText = "FLEW AWAY!";
-        mDisplay.style.color = varProp('--primary');
-        
-        const plane = document.getElementById('plane');
-        plane.style.animation = "flyAway 0.5s forwards";
-        
-        setTimeout(() => { plane.style.animation = ""; }, 1000);
-        
-        // Reset Local Bet State
-        myBets[1].active = false;
-        myBets[2].active = false;
-        myBets[1].cashed = false;
-        myBets[2].cashed = false;
-    }
-
-    // --- BETTING LOGIC ---
     function handleAction(id) {
-        const amtInput = document.getElementById('amt' + id);
-        const amt = parseFloat(amtInput.value);
-
+        const amt = parseFloat(document.getElementById('amt' + id).value);
         if(isWaiting && !myBets[id].active) {
-            // Place Bet
-            if(amt > balance) return alert("Insufficient Balance!");
-            if(amt < 10) return alert("Min bet Rs 10");
-
-            db.ref('users/' + uid).update({ balance: balance - amt });
-            db.ref('active_bets/' + uid + '_' + id).set({
-                uid: uid,
-                email: auth.currentUser.email,
-                amt: amt,
-                timestamp: Date.now()
-            });
-
-            myBets[id].active = true;
-            myBets[id].amt = amt;
-            myBets[id].cashed = false;
-
-            const btn = document.getElementById('btn' + id);
-            btn.className = "btn-main btn-cancel";
-            btn.innerHTML = "CANCEL <span>Waiting...</span>";
-
+            if(amt > balance) return alert("Low Balance");
+            db.ref('users/'+uid).update({balance: balance - amt});
+            db.ref('active_bets/'+uid+'_'+id).set({uid, amt});
+            myBets[id] = { active: true, amt: amt, cashed: false };
+            setUI(id, "CANCEL", "btn-cancel");
         } else if(isFlying && myBets[id].active && !myBets[id].cashed) {
-            // Cash Out
-            const winAmt = myBets[id].amt * currentMult;
-            db.ref('users/' + uid).update({ balance: balance + winAmt });
-            
-            myBets[id].cashed = true;
-            myBets[id].active = false;
-
-            const btn = document.getElementById('btn' + id);
-            btn.style.background = "#059669";
-            btn.innerHTML = `CASHED <span style="font-size:16px;">Rs ${winAmt.toFixed(2)}</span>`;
-            
-            // Remove from active bets in DB
-            db.ref('active_bets/' + uid + '_' + id).remove();
+            cashOut(id);
         } else if(isWaiting && myBets[id].active) {
-            // Cancel Bet
-            db.ref('users/' + uid).update({ balance: balance + myBets[id].amt });
-            db.ref('active_bets/' + uid + '_' + id).remove();
+            db.ref('users/'+uid).update({balance: balance + myBets[id].amt});
+            db.ref('active_bets/'+uid+'_'+id).remove();
             myBets[id].active = false;
-            
-            const btn = document.getElementById('btn' + id);
-            btn.className = "btn-main btn-bet";
-            btn.innerHTML = `BET <span id="sub${id}">Rs ${amt}</span>`;
+            setUI(id, "BET", "btn-bet");
         }
     }
 
-    function updateLiveButtons() {
-        for(let i=1; i<=2; i++) {
+    function cashOut(id) {
+        const win = myBets[id].amt * currentMult;
+        db.ref('users/'+uid).update({balance: balance + win});
+        db.ref('active_bets/'+uid+'_'+id).remove();
+        myBets[id].cashed = true; myBets[id].active = false;
+        const btn = document.getElementById('btn'+id);
+        btn.style.background = "#059669"; btn.innerText = "WON Rs " + win.toFixed(2);
+    }
+
+    function checkAuto() {
+        [1,2].forEach(i => {
+            let v = parseFloat(document.getElementById('autoVal'+i).value);
+            if(v && currentMult >= v && myBets[i].active && !myBets[i].cashed) cashOut(i);
+        });
+    }
+
+    function updateLiveUI() {
+        [1,2].forEach(i => {
             if(myBets[i].active && !myBets[i].cashed) {
-                const btn = document.getElementById('btn'+i);
-                btn.className = "btn-main btn-cashout";
-                const liveWin = (myBets[i].amt * currentMult).toFixed(2);
-                btn.innerHTML = `CASH OUT <span>Rs ${liveWin}</span>`;
+                const b = document.getElementById('btn'+i);
+                b.className = "btn-main btn-cashout";
+                b.innerHTML = `CASH OUT <span>Rs ${(myBets[i].amt * currentMult).toFixed(2)}</span>`;
             }
-        }
+        });
     }
 
-    function checkAutoCashout() {
-        // Feature for future update (Auto-pilot for users)
+    function resetRound() {
+        [1,2].forEach(i => {
+            if(!myBets[i].active) {
+                setUI(i, "BET", "btn-bet");
+                document.getElementById('btn'+i).style.background = "";
+            }
+        });
     }
 
-    function adj(id, val) {
-        const inp = document.getElementById('amt' + id);
-        let n = parseInt(inp.value) + val;
-        if(n < 10) n = 10;
-        inp.value = n;
-        if(!myBets[id].active) {
-            document.getElementById('sub' + id).innerText = "Rs " + n.toFixed(2);
-        }
+    function setUI(id, txt, cls) {
+        const b = document.getElementById('btn'+id);
+        b.className = "btn-main " + cls;
+        b.innerHTML = txt + ` <span>Rs ${document.getElementById('amt'+id).value}</span>`;
     }
 
-    function varProp(name) {
-        return getComputedStyle(document.documentElement).getPropertyValue(name);
+    function adj(id, v) {
+        let i = document.getElementById('amt'+id);
+        i.value = Math.max(10, parseInt(i.value) + v);
     }
 </script>
 </body>
-                        </html>
-    
+</html>
