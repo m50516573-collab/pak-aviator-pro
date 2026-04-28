@@ -5,95 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aviator VIP - Muhammad Shop</title>
     
+    <script>
+        (function() {
+            var url = new URL(window.location.href);
+            if (!url.searchParams.has('v')) {
+                url.searchParams.set('v', Date.now());
+                window.location.replace(url.toString());
+            }
+        })();
+        window.onerror = function() { return true; };
+    </script>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
     <style>
-        :root { 
-            --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; 
-            --blue: #34b4ff; --gold: #f2a900; --vip: #9c27b0; 
-        }
-        body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow-x: hidden; }
+        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; --vip-purple: #9c27b0; }
+        body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
         
-        /* Auth Styles */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .auth-card { width: 85%; text-align: center; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; }
-        .auth-input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 10px; background: #000; border: 1px solid #444; color: #fff; outline: none; }
-        .auth-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; }
+        .auth-input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 10px; background: #000; border: 1px solid #444; color: #fff; font-size: 14px; outline: none; }
+        .auth-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .auth-toggle { font-size: 12px; color: #888; margin-top: 15px; cursor: pointer; text-decoration: underline; }
 
-        /* Header & Balance */
-        .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; }
-        .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; font-size: 14px; }
+        .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; gap: 8px; }
+        .u-info { font-size: 10px; color: var(--blue); flex: 1; }
+        .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; font-size: 14px; background: rgba(0,0,0,0.3); }
+        .nav-btns { display: flex; gap: 6px; }
+        .nav-btns button { padding: 8px 12px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; }
+
+        .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; scrollbar-width: none; min-height: 25px; justify-content: flex-start; align-items: center; }
+        .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; min-width: 45px; text-align: center; }
+        .h-blue { color: var(--blue); border-color: var(--blue); }
+        .h-purple { color: var(--vip-purple); border-color: var(--vip-purple); }
+        .h-gold { color: var(--gold); border-color: var(--gold); text-shadow: 0 0 5px var(--gold); }
+
+        .arena { height: 230px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #mVal { font-size: 55px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); transition: color 0.2s; }
+        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
+        #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
+        #win-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(40, 167, 69, 0.95); padding: 15px 30px; border-radius: 50px; border: 2px solid #fff; box-shadow: 0 0 20px #28a745; z-index: 100; display: none; text-align: center; }
         
-        /* Game Arena */
-        .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; min-height: 35px; scrollbar-width: none; }
-        .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; }
-        .arena { height: 240px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        #mVal { font-size: 60px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
-        #plane { position: absolute; font-size: 50px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); transition: left 0.1s linear; }
-        #super-jet-ui { position: absolute; top: 15%; color: var(--gold); font-weight: 900; font-size: 18px; display: none; animation: blink 0.6s infinite; z-index: 30; }
-        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
+        #super-label { position: absolute; top: 15px; color: var(--gold); font-weight: 900; font-size: 14px; display: none; animation: flash 0.5s infinite; text-shadow: 0 0 10px orange; z-index: 30; }
+        @keyframes flash { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
 
-        /* Controls */
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
         .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
-        .b-input { width: 85%; background: #000; border: 1px solid #444; color: white; padding: 8px; border-radius: 8px; margin-bottom: 5px; text-align: center; }
-        .b-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 900; color: white; cursor: pointer; background: var(--win); }
-
-        /* Overlays */
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1500; padding: 20px; overflow-y: auto; }
-        .close-btn { float: right; font-size: 30px; cursor: pointer; color: var(--red); }
-        .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; }
+        .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px; font-size: 14px; }
+        .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); transition: 0.2s; }
         
-        .winners-list { background: #0a0a0a; padding: 10px; height: 200px; overflow-y: auto; font-size: 11px; border-top: 1px solid #222; }
-        .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
+        .live-stats { background: #1b1c21; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid #333; }
+        .winners-list { background: #0a0a0a; padding: 10px; min-height: 250px; font-size: 11px; height: 250px; overflow-y: auto; }
+        .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 8px 0; border-bottom: 1px solid #1a1a1a; }
+
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
+        .close-btn { float: right; font-size: 30px; cursor: pointer; color: var(--red); }
+        .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; line-height: 1.6; }
+        .status-item { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #444; font-size: 12px; }
     </style>
 </head>
 <body>
 
+<audio id="snd-fly" src="https://files.catbox.moe/6797x7.mp3" loop></audio>
+<audio id="snd-super" src="https://files.catbox.moe/19p4v4.mp3"></audio>
+
 <div id="auth-screen">
     <div class="auth-card">
-        <h2 id="auth-title" style="color:var(--red);">AVIATOR LOGIN</h2>
+        <h2 id="auth-title" style="color:var(--red); margin:0 0 15px 0;">AVIATOR LOGIN</h2>
         <input type="email" id="auth-email" class="auth-input" placeholder="Email">
         <input type="password" id="auth-pass" class="auth-input" placeholder="Password">
         <button id="auth-main-btn" onclick="handleAuth()" class="auth-btn">LOGIN</button>
-        <p onclick="toggleAuth()" style="font-size:12px; color:#888; cursor:pointer; margin-top:15px; text-decoration:underline;">No account? Create one</p>
+        <p id="auth-toggle-text" class="auth-toggle" onclick="toggleAuthMode()">No account? Create one</p>
     </div>
 </div>
 
 <div id="app">
     <div class="header">
-        <div style="font-size:10px; color:var(--blue);">
-            <span id="uGmail">Loading...</span><br>
-            <span onclick="toggleTab('profTab')" style="cursor:pointer; text-decoration:underline;">MY PROFILE 👤</span>
-        </div>
+        <div class="u-info"><span id="uGmail">Loading...</span><br><button onclick="toggleTab('profileTab')" style="background:none; border:none; color:var(--blue); font-size:10px; padding:0; cursor:pointer;">MY PROFILE 👤</button></div>
         <div class="bal-box">Rs <span id="uBal">0.00</span></div>
-        <div style="display:flex; gap:5px;">
-            <button onclick="toggleTab('depTab')" style="background:var(--win); border:none; color:white; padding:6px 10px; border-radius:5px; font-size:11px; font-weight:bold;">DEP</button>
-            <button onclick="toggleTab('witTab')" style="background:var(--blue); border:none; color:white; padding:6px 10px; border-radius:5px; font-size:11px; font-weight:bold;">WIT</button>
+        <div class="nav-btns">
+            <button onclick="toggleTab('depTab')" style="background:var(--win);">DEPOSIT</button>
+            <button onclick="toggleTab('witTab')" style="background:var(--blue);">WITHDRAW</button>
         </div>
     </div>
 
     <div class="history-bar" id="hBar"></div>
 
     <div class="arena">
-        <div id="super-jet-ui">🚀 SUPER JET MODE ACTIVE!</div>
+        <div id="super-label">SUPER JET MODE 🚀</div>
+        <div id="tBox">Next Round: 7s</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
+        <div id="win-pop">
+            <div style="font-size:12px; color:white;">YOU CASHED OUT!</div>
+            <div id="pop-win-val" style="font-size:24px; font-weight:bold;">0.00x</div>
+        </div>
+    </div>
+
+    <div class="live-stats">
+        <span>ALL BETS</span>
+        <span style="color:var(--win); font-weight:bold;">● <span id="pCount">0</span></span>
     </div>
 
     <div class="controls-grid">
         <div class="bet-box">
             <input type="number" id="amt1" value="100" class="b-input">
-            <input type="number" id="autoX1" placeholder="Auto Cashout" class="b-input">
+            <input type="number" id="autoX1" placeholder="Auto 2.0" class="b-input">
             <button id="btn1" onclick="handleBet(1)" class="b-btn">BET</button>
+            <label style="font-size:10px;"><input type="checkbox" id="auto1"> Auto Bet</label>
         </div>
         <div class="bet-box">
             <input type="number" id="amt2" value="100" class="b-input">
-            <input type="number" id="autoX2" placeholder="Auto Cashout" class="b-input">
+            <input type="number" id="autoX2" placeholder="Auto 2.0" class="b-input">
             <button id="btn2" onclick="handleBet(2)" class="b-btn">BET</button>
+            <label style="font-size:10px;"><input type="checkbox" id="auto2"> Auto Bet</label>
         </div>
     </div>
 
@@ -104,195 +132,225 @@
         <h3 style="color:var(--gold); text-align:center;">JAZZCASH DEPOSIT</h3>
         <div class="inst-box">
             <b>NAME: MUHAMMAD SHOP</b><br>
-            <b>TILL ID: 983199695</b><br><br>
-            JazzCash App kholen, 'Till Payment' select karein aur upar wala ID daalein. Payment ke baad TID niche enter karein.
+            <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
+            Pay via JazzCash App and enter TID below.
         </div>
-        <input type="number" id="dAmt" placeholder="Amount" class="auth-input">
-        <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="auth-input">
-        <button onclick="submitRequest('Deposit')" class="auth-btn">SUBMIT DEPOSIT</button>
+        <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
+        <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
+        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT DEPOSIT</button>
     </div>
 
     <div id="witTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
-        <p style="font-size:12px; text-align:center; color:#888;">Minimum: Rs 500 | Wager Requirement: Rs 5000</p>
-        <input type="number" id="wAmt" placeholder="Amount" class="auth-input">
-        <input type="text" id="wNum" placeholder="JazzCash Number" class="auth-input">
-        <button onclick="submitRequest('Withdraw')" class="auth-btn" style="background:var(--blue);">SUBMIT WITHDRAW</button>
+        <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
+        <input type="text" id="wNum" placeholder="JazzCash Number" class="b-input" style="width:100%;">
+        <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">WITHDRAW</button>
     </div>
 
-    <div id="profTab" class="overlay">
+    <div id="profileTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3 style="text-align:center;">USER PROFILE</h3>
-        <div id="profData" style="background:#1b1c21; padding:20px; border-radius:15px; margin-bottom:20px;"></div>
-        <button onclick="auth.signOut()" class="auth-btn">LOGOUT</button>
+        <h3>MY PROFILE</h3>
+        <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
+        <button onclick="auth.signOut()" class="auth-btn" style="margin-bottom:20px;">LOGOUT</button>
+        <div id="uStatusList">No history found.</div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.database();
+const firebaseConfig = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-    let uid, balance = 0, wager = 0, isLogin = true;
-    let mult = 1.0, isFlying = false, isWaiting = true, isSuper = false;
-    let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
+let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 0;
+let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
+let isLoginMode = true, initialDeposit = 0;
 
-    function toggleAuth() { isLogin = !isLogin; document.getElementById('auth-title').innerText = isLogin ? "AVIATOR LOGIN" : "AVIATOR SIGNUP"; }
+function toggleAuthMode() {
+    isLoginMode = !isLoginMode;
+    document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
+}
 
-    function handleAuth() {
-        const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
-        if(!e || !p) return alert("Fields fill karein");
-        if(isLogin) {
-            auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
-        } else {
-            auth.createUserWithEmailAndPassword(e, p).then(res => {
-                db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0 });
-            }).catch(err => alert(err.message));
-        }
-    }
+function handleAuth() {
+    const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
+    if(isLoginMode) auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+    else auth.createUserWithEmailAndPassword(e, p).then(res => db.ref('users/'+res.user.uid).set({email:e, balance:100, wager:0, deposit:0}));
+}
 
-    auth.onAuthStateChanged(user => {
-        if(user) {
-            uid = user.uid; document.getElementById('uGmail').innerText = user.email;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            db.ref('users/' + uid).on('value', s => {
-                let data = s.val(); balance = data?.balance || 0; wager = data?.wager || 0;
+auth.onAuthStateChanged(user => {
+    if(user) {
+        uid = user.uid; userEmail = user.email;
+        document.getElementById('uGmail').innerText = userEmail;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        db.ref('users/' + uid).on('value', s => {
+            if(s.exists()){
+                balance = s.val().balance || 0; wager = s.val().wager || 0; initialDeposit = s.val().deposit || 0;
                 document.getElementById('uBal').innerText = balance.toFixed(2);
-                document.getElementById('profData').innerHTML = `<b>Email:</b> ${user.email}<br><br><b>Balance:</b> Rs ${balance.toFixed(2)}<br><b>Total Wager:</b> Rs ${wager}`;
-            });
-            startMainLoop(); startFakeWinners();
-        } else {
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('app').style.display = 'none';
-        }
-    });
-
-    function startMainLoop() {
-        let t = 7; isWaiting = true; isFlying = false; isSuper = false;
-        const mVal = document.getElementById('mVal');
-        mVal.style.color = "white";
-        document.getElementById('plane').style.display = 'none';
-        document.getElementById('super-jet-ui').style.display = 'none';
-        
-        let timer = setInterval(() => {
-            mVal.innerText = "WAITING " + t + "s";
-            if(t <= 0) { clearInterval(timer); launch(); }
-            t--;
-        }, 1000);
-    }
-
-    function launch() {
-        isWaiting = false; isFlying = true; mult = 1.0;
-        const plane = document.getElementById('plane');
-        plane.style.display = 'block'; plane.style.left = "10%";
-        
-        // Dynamic Crash Point Logic
-        let crash = (Math.random() > 0.3 ? (Math.random() * 5 + 1.1) : (Math.random() * 0.4 + 1.01)).toFixed(2);
-
-        function engine() {
-            if(!isFlying) return;
-            if(mult >= 2.0 && !isSuper) {
-                isSuper = true;
-                document.getElementById('super-jet-ui').style.display = 'block';
-                plane.style.filter = "drop-shadow(0 0 15px gold) hue-rotate(90deg)";
+                document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)}`;
             }
-            mult += isSuper ? 0.04 : 0.01;
-            document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
-            plane.style.left = (10 + (mult * 3)) + "%";
-
-            // Auto Cashout Check
-            [1, 2].forEach(id => {
-                let b = (id === 1) ? b1 : b2;
-                let autoX = parseFloat(document.getElementById('autoX' + id).value);
-                if(b.active && !b.cashed) {
-                    document.getElementById('btn'+id).innerText = "CASH Rs " + (b.amt * mult).toFixed(2);
-                    if(!isNaN(autoX) && mult >= autoX) handleBet(id);
-                }
-            });
-
-            if(mult >= crash) {
-                finishRound(crash);
-            } else {
-                setTimeout(engine, 100);
-            }
-        }
-        engine();
-    }
-
-    function finishRound(crashVal) {
-        isFlying = false;
-        document.getElementById('mVal').innerText = "FLEW AWAY!";
-        document.getElementById('mVal').style.color = "red";
-        [1, 2].forEach(id => {
-            let b = (id === 1) ? b1 : b2;
-            b.active = false; b.cashed = false;
-            document.getElementById('btn'+id).innerText = "BET";
-            document.getElementById('btn'+id).style.background = "var(--win)";
         });
-        addHistory(crashVal);
-        setTimeout(startMainLoop, 3000);
-    }
+        generateFakeHistory(); start7sTimer(); startFakeWinners();
+    } else { document.getElementById('auth-screen').style.display = 'flex'; }
+});
 
-    function handleBet(id) {
-        let b = (id === 1) ? b1 : b2;
-        let amt = parseFloat(document.getElementById('amt'+id).value);
-        let btn = document.getElementById('btn'+id);
+// VIP RNG LOGIC
+function getRngCrashPoint() {
+    // Killing Mode check
+    if (initialDeposit > 0 && balance > initialDeposit) return 1.0;
+    if (initialDeposit > 0 && balance < (initialDeposit / 2)) { /* Normal RNG continues */ }
 
-        if(isWaiting && !b.active) {
-            if(amt > balance || amt < 10) return alert("Invalid Balance");
-            db.ref('users/'+uid).update({ balance: balance - amt, wager: wager + amt });
-            b.active = true; b.amt = amt;
-            btn.innerText = "CANCEL"; btn.style.background = "var(--red)";
-        } else if(isFlying && b.active && !b.cashed) {
-            let win = b.amt * mult;
-            db.ref('users/'+uid).update({ balance: balance + win });
-            b.cashed = true;
-            btn.innerText = "WIN Rs " + win.toFixed(2);
-            btn.style.background = "var(--gold)";
+    const r = Math.random() * 100;
+    if (r < 20) return 1.0; // 20% bets @ 1.0x
+    if (r < 30) return (Math.random() * (10 - 5) + 5).toFixed(2); // 10% bets @ 5x-10x
+    if (r < 70) return (Math.random() * (1.5 - 1.2) + 1.2).toFixed(2); // 40% bets @ 1.2x-1.5x
+    if (r < 90) return (Math.random() * (3 - 2) + 2).toFixed(2); // 20% bets @ 2x-3x
+    if (r < 95) return (Math.random() * (15 - 10) + 10).toFixed(2); // 5% bets @ 10x-15x
+    return (Math.random() * (50 - 10) + 10).toFixed(2); // 5% bets @ 10x-50x
+}
+
+function start7sTimer() {
+    let t = 7; isWaiting = true; isFlying = false;
+    document.getElementById('tBox').style.display = 'block';
+    document.getElementById('plane').style.display = 'none';
+    document.getElementById('mVal').innerText = "WAITING";
+    document.getElementById('mVal').style.color = "white";
+    document.getElementById('super-label').style.display = 'none';
+    
+    // Players 1200 - 1500
+    currentPlayers = Math.floor(Math.random() * (1500 - 1200) + 1200);
+    document.getElementById('pCount').innerText = currentPlayers;
+
+    let timer = setInterval(() => {
+        document.getElementById('tBox').innerText = `Next Round: ${t}s`;
+        if(t <= 0) { clearInterval(timer); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
+        t--;
+    }, 1000);
+}
+
+function launchPlane() {
+    isWaiting = false; isFlying = true; mult = 1.0;
+    document.getElementById('plane').style.display = 'block';
+    document.getElementById('snd-fly').play();
+    
+    let crashPoint = getRngCrashPoint();
+    let superJet = false;
+
+    function engine() {
+        if(!isFlying) return;
+        
+        // Super Jet Mode 2x+
+        if(mult >= 2.0 && !superJet) {
+            superJet = true;
+            document.getElementById('super-label').style.display = 'block';
+            document.getElementById('snd-super').play();
+            document.getElementById('plane').style.filter = "drop-shadow(0 0 15px gold)";
         }
-    }
 
-    function addHistory(val) {
-        let tag = document.createElement('div');
-        tag.className = 'h-tag';
-        if(val > 10) tag.style.color = "var(--gold)";
-        else if(val > 2) tag.style.color = "var(--vip)";
-        else tag.style.color = "var(--blue)";
-        tag.innerText = val + "x";
-        let bar = document.getElementById('hBar');
-        bar.prepend(tag);
-        if(bar.children.length > 15) bar.lastChild.remove();
-    }
+        mult += superJet ? 0.06 : 0.01; // Full speed after 2x
+        document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
 
-    function startFakeWinners() {
-        setInterval(() => {
-            if(isFlying) {
-                let row = document.createElement('div');
-                row.className = 'win-row';
-                row.innerHTML = `<span>User_${Math.floor(Math.random()*999)}</span><span>Rs ${Math.floor(Math.random()*1000)}</span><span style="color:var(--win)">${(mult * 0.8).toFixed(2)}x</span>`;
-                let box = document.getElementById('winRows');
-                box.prepend(row);
-                if(box.children.length > 15) box.lastChild.remove();
+        // Player Drop Effect
+        if(currentPlayers > 50) {
+            currentPlayers -= Math.floor(Math.random() * 15);
+            document.getElementById('pCount').innerText = currentPlayers;
+        }
+
+        // Strict Check: No 10x+ if user is active > 5x
+        let userIn = (b1.active && !b1.cashed) || (b2.active && !b2.cashed);
+        if(userIn && mult >= 5.0 && crashPoint > 10) crashPoint = 5.1;
+
+        [1, 2].forEach(id => {
+            let b = id === 1 ? b1 : b2;
+            if(b.active && !b.cashed) {
+                document.getElementById('btn'+id).innerText = "CASH OUT\nRs " + (b.amt * mult).toFixed(2);
+                let autoX = parseFloat(document.getElementById('autoX'+id).value);
+                if(autoX > 1 && mult >= autoX) handleBet(id);
             }
-        }, 2500);
-    }
+        });
 
-    function toggleTab(id) {
-        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-        if(id) document.getElementById(id).style.display = 'block';
-    }
+        document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
+        document.getElementById('plane').style.bottom = (15 + (mult * 1.5)) + "%";
 
-    function submitRequest(type) {
-        let amt = document.getElementById(type === 'Deposit' ? 'dAmt' : 'wAmt').value;
-        let detail = document.getElementById(type === 'Deposit' ? 'dTid' : 'wNum').value;
-        if(!amt || !detail) return alert("Details fill karein");
-        db.ref('requests').push({ uid, email: auth.currentUser.email, amount: amt, detail: detail, type: type, status: 'pending' });
-        alert(type + " Request Sent!");
-        toggleTab();
+        if(mult >= crashPoint) crash(); else setTimeout(engine, 100);
     }
+    engine();
+}
+
+function crash() {
+    isFlying = false; document.getElementById('snd-fly').pause(); document.getElementById('snd-fly').currentTime = 0;
+    document.getElementById('mVal').innerText = "FLEW AWAY!";
+    document.getElementById('mVal').style.color = "red";
+    document.getElementById('plane').style.display = 'none';
+    addHistoryTag(mult.toFixed(2));
+    [1, 2].forEach(id => {
+        let b = id === 1 ? b1 : b2; b.active = false; b.cashed = false;
+        document.getElementById('btn'+id).innerText = "BET";
+        document.getElementById('btn'+id).style.background = "#28a745";
+    });
+    setTimeout(start7sTimer, 3000);
+}
+
+function handleBet(id) {
+    let b = (id === 1) ? b1 : b2; let btn = document.getElementById('btn'+id);
+    let amt = parseFloat(document.getElementById('amt'+id).value);
+    
+    if(isWaiting && !b.active) {
+        if(amt > balance || amt < 10) return alert("Low Balance");
+        db.ref('users/'+uid).update({ balance: balance - amt, wager: wager + amt });
+        b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
+    } else if(isFlying && b.active && !b.cashed) {
+        let win = b.amt * mult; db.ref('users/'+uid).update({ balance: balance + win });
+        b.cashed = true; btn.innerText = "WON!"; btn.style.background = "#155724";
+        cashoutSound.play();
+        document.getElementById('pop-win-val').innerText = mult.toFixed(2) + "x";
+        document.getElementById('win-pop').style.display = 'block';
+        setTimeout(() => document.getElementById('win-pop').style.display = 'none', 2000);
+    }
+}
+
+function addHistoryTag(val) {
+    const tag = document.createElement('div'); let v = parseFloat(val);
+    let c = "h-blue"; if(v >= 2.0) c = "h-purple"; if(v >= 10.0) c = "h-gold";
+    tag.className = 'h-tag ' + c; tag.innerText = val + 'x';
+    document.getElementById('hBar').prepend(tag);
+}
+
+function startFakeWinners() {
+    setInterval(() => {
+        if(isFlying && Math.random() < 0.6) {
+            let row = document.createElement('div'); row.className = 'win-row';
+            row.innerHTML = `<span>User***</span><span>Rs 500</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
+            document.getElementById('winRows').prepend(row);
+        }
+    }, 1500);
+}
+
+function generateFakeHistory() { for(let i=0; i<20; i++) addHistoryTag((Math.random()*2 + 1).toFixed(2)); }
+
+function toggleTab(id) { 
+    document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
+    if(id) document.getElementById(id).style.display = 'block'; 
+}
+
+function submitDep() {
+    let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
+    if(a && t) { 
+        db.ref('requests').push({uid, email:userEmail, amount:a, tid:t, type:'deposit', status:'pending'});
+        db.ref('users/'+uid).update({deposit: initialDeposit + parseFloat(a)});
+        alert("Sent!"); toggleTab(); 
+    }
+}
+
+function submitWit() {
+    let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
+    if(a >= 500 && wager >= 5000 && a <= balance) {
+        db.ref('requests').push({uid, email:userEmail, amount:a, number:n, type:'withdraw', status:'pending'});
+        db.ref('users/'+uid).update({ balance: balance - a }); alert("Sent!"); toggleTab();
+    }
+}
 </script>
-
 </body>
 </html>
