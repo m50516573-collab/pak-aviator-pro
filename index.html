@@ -103,11 +103,7 @@
             border-bottom: 1px solid #333; 
             gap: 8px; 
         }
-        .u-info { 
-            font-size: 10px; 
-            color: var(--blue); 
-            flex: 1; 
-        }
+        .u-info { font-size: 10px; color: var(--blue); flex: 1; }
         .bal-box { 
             border: 1.5px solid var(--win); 
             border-radius: 20px; 
@@ -117,10 +113,7 @@
             font-size: 14px; 
             background: rgba(0,0,0,0.3); 
         }
-        .nav-btns { 
-            display: flex; 
-            gap: 6px; 
-        }
+        .nav-btns { display: flex; gap: 6px; }
         .nav-btns button { 
             padding: 8px 12px; 
             border-radius: 6px; 
@@ -166,22 +159,8 @@
             align-items: center; 
             justify-content: center; 
         }
-        #mVal { 
-            font-size: 55px; 
-            font-weight: 900; 
-            z-index: 10; 
-            text-shadow: 0 0 15px rgba(255,255,255,0.2); 
-            transition: color 0.2s; 
-        }
-        #plane { 
-            position: absolute; 
-            font-size: 45px; 
-            bottom: 15%; 
-            left: 10%; 
-            z-index: 5; 
-            display: none; 
-            filter: drop-shadow(0 0 10px red); 
-        }
+        #mVal { font-size: 55px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); transition: color 0.2s; }
+        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
         #tBox { 
             position: absolute; 
             background: rgba(0,0,0,0.85); 
@@ -205,11 +184,7 @@
             animation: blink 0.6s infinite; 
             z-index: 30; 
         }
-        @keyframes blink { 
-            0% {opacity: 1;} 
-            50% {opacity: 0.3;} 
-            100% {opacity: 1;} 
-        }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
 
         #win-pop { 
             position: absolute; 
@@ -226,100 +201,19 @@
             text-align: center; 
         }
 
-        .controls-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 8px; 
-            padding: 10px; 
-            background: var(--card); 
-        }
-        .bet-box { 
-            background: #14151b; 
-            padding: 12px; 
-            border-radius: 15px; 
-            border: 1px solid #333; 
-            text-align: center; 
-        }
-        .b-input { 
-            width: 90%; 
-            background: #000; 
-            border: 1px solid #444; 
-            color: white; 
-            padding: 10px; 
-            border-radius: 8px; 
-            text-align: center; 
-            margin-bottom: 8px; 
-            font-size: 14px; 
-        }
-        .b-btn { 
-            width: 100%; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            font-weight: 900; 
-            color: white; 
-            cursor: pointer; 
-            background: var(--win); 
-            transition: 0.2s; 
-        }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
+        .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
+        .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px; font-size: 14px; }
+        .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); transition: 0.2s; }
         
-        .live-stats { 
-            background: #1b1c21; 
-            padding: 8px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 12px; 
-            border-top: 1px solid #333; 
-        }
-        .winners-list { 
-            background: #0a0a0a; 
-            padding: 10px; 
-            min-height: 250px; 
-            font-size: 11px; 
-            height: 250px; 
-            overflow-y: auto; 
-        }
-        .win-row { 
-            display: grid; 
-            grid-template-columns: 1.5fr 1fr 1fr; 
-            padding: 8px 0; 
-            border-bottom: 1px solid #1a1a1a; 
-        }
+        .live-stats { background: #1b1c21; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid #333; }
+        .winners-list { background: #0a0a0a; padding: 10px; min-height: 250px; font-size: 11px; height: 250px; overflow-y: auto; }
+        .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 8px 0; border-bottom: 1px solid #1a1a1a; }
 
-        .overlay { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.95); 
-            z-index: 1000; 
-            padding: 20px; 
-            overflow-y: auto; 
-        }
-        .close-btn { 
-            float: right; 
-            font-size: 30px; 
-            cursor: pointer; 
-            color: var(--red); 
-        }
-        .inst-box { 
-            background:#111; 
-            padding:15px; 
-            border-radius:10px; 
-            font-size:13px; 
-            border-left:4px solid var(--gold); 
-            margin-bottom:15px; 
-            color: #ccc; 
-            line-height: 1.6; 
-        }
-        .status-item { 
-            background: #222; 
-            padding: 12px; 
-            border-radius: 10px; 
-            margin-bottom: 10px; 
-            border-left: 5px solid #444; 
-            font-size: 12px; 
-        }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
+        .close-btn { float: right; font-size: 30px; cursor: pointer; color: var(--red); }
+        .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; line-height: 1.6; }
+        .status-item { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #444; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -419,6 +313,7 @@
 </div>
 
 <script>
+    // Firebase Config (Must be correctly initialized)
     const firebaseConfig = { 
         apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
         databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
@@ -427,37 +322,26 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    // Audio files
     const flySnd = new Audio('https://files.catbox.moe/6797x7.mp3');
     const crashSnd = new Audio('https://files.catbox.moe/9v9r38.mp3');
     const winSnd = new Audio('https://files.catbox.moe/v6p5at.mp3');
     const boostSnd = new Audio('https://files.catbox.moe/19p4v4.mp3');
 
     let uid, userEmail, balance = 0, wager = 0, depBal = 0;
-    let mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 0;
+    let mult = 1.0, isFlying = false, isWaiting = true;
     let b1 = { active: false, amt: 0, cashed: false };
     let b2 = { active: false, amt: 0, cashed: false };
     let isLoginMode = true, isSuperJet = false;
-
     let crashPoint = 1.0;
+
     const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "nomi", "sunny", "bilal"];
     const pakAmts = [200, 500, 1000, 2000, 5000];
-
-    function calculateCrashPoint() {
-        if ((b1.active && b1.amt >= 500) || (b2.active && b2.amt >= 500)) {
-            return (Math.random() * 0.1 + 1.01).toFixed(2);
-        }
-        if (balance >= (depBal * 2)) {
-            return (1.00).toFixed(2); 
-        }
-        let r = Math.random();
-        if (r < 0.4) return (Math.random() * 0.2 + 1.1).toFixed(2);
-        if (r < 0.8) return (Math.random() * 2 + 1.5).toFixed(2);
-        return (Math.random() * 15 + 5).toFixed(2);
-    }
 
     function toggleAuthMode() {
         isLoginMode = !isLoginMode;
         document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
+        document.getElementById('auth-main-btn').innerText = isLoginMode ? "LOGIN" : "SIGNUP";
         document.getElementById('auth-toggle-text').innerText = isLoginMode ? "No account? Create one" : "Already have account? Login";
     }
 
@@ -465,11 +349,17 @@
         const e = document.getElementById('auth-email').value;
         const p = document.getElementById('auth-pass').value;
         if(!e || !p) return alert("Fill fields");
+
         if(isLoginMode) {
             auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
         } else {
             auth.createUserWithEmailAndPassword(e, p).then(res => {
-                db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0, depositBal: 100 });
+                db.ref('users/' + res.user.uid).set({ 
+                    email: e, 
+                    balance: 100, 
+                    wager: 0, 
+                    depositBal: 100 
+                });
             }).catch(err => alert(err.message));
         }
     }
@@ -480,36 +370,47 @@
             document.getElementById('uGmail').innerText = userEmail;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            
             db.ref('users/' + uid).on('value', s => {
                 if(s.exists()){
-                    balance = s.val().balance || 0; wager = s.val().wager || 0; depBal = s.val().depositBal || 100;
+                    let data = s.val();
+                    balance = data.balance || 0; 
+                    wager = data.wager || 0; 
+                    depBal = data.depositBal || 100;
                     document.getElementById('uBal').innerText = balance.toFixed(2);
                     document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
                 }
             });
-            generateFakeHistory(); start7sTimer(); startFakeWinners();
+            generateFakeHistory(); 
+            start7sTimer(); 
+            startFakeWinners();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app').style.display = 'none';
         }
     });
 
+    function calculateCrashPoint() {
+        if ((b1.active && b1.amt >= 500) || (b2.active && b2.amt >= 500)) return (Math.random() * 0.1 + 1.01).toFixed(2);
+        if (balance >= (depBal * 2)) return (1.00).toFixed(2); 
+        let r = Math.random();
+        if (r < 0.4) return (Math.random() * 0.2 + 1.1).toFixed(2);
+        if (r < 0.8) return (Math.random() * 2 + 1.5).toFixed(2);
+        return (Math.random() * 15 + 5).toFixed(2);
+    }
+
     function start7sTimer() {
         let t = 7; isWaiting = true; isFlying = false; isSuperJet = false;
+        const mVal = document.getElementById('mVal');
+        const plane = document.getElementById('plane');
+        
         document.getElementById('tBox').style.display = 'block';
-        document.getElementById('plane').style.display = 'none';
+        plane.style.display = 'none';
         document.getElementById('super-jet-ui').style.display = 'none';
-        document.getElementById('mVal').innerText = "WAITING";
-        document.getElementById('mVal').style.color = "white";
-        document.getElementById('plane').style.filter = "drop-shadow(0 0 10px red)";
-        currentPlayers = 0;
-        let targetPlayers = Math.floor(Math.random() * (1500 - 1200) + 1200);
-        let playerIncrement = setInterval(() => {
-            if (currentPlayers < targetPlayers) {
-                currentPlayers += Math.floor(targetPlayers / 70); 
-                document.getElementById('pCount').innerText = currentPlayers;
-            } else { clearInterval(playerIncrement); }
-        }, 100);
+        mVal.innerText = "WAITING";
+        mVal.style.color = "white";
+        plane.style.filter = "drop-shadow(0 0 10px red)";
+
         let timer = setInterval(() => {
             document.getElementById('tBox').innerText = `Next Round: ${t}s`;
             if(t <= 0) { 
@@ -524,7 +425,8 @@
 
     function launchPlane() {
         isWaiting = false; isFlying = true; mult = 1.0;
-        document.getElementById('plane').style.display = 'block';
+        const plane = document.getElementById('plane');
+        plane.style.display = 'block';
         flySnd.currentTime = 0; flySnd.loop = true; flySnd.play().catch(()=>{});
         
         function engine() {
@@ -532,15 +434,51 @@
             if (mult >= 2.0 && !isSuperJet) {
                 isSuperJet = true;
                 document.getElementById('super-jet-ui').style.display = 'block';
-                document.getElementById('plane').style.filter = "drop-shadow(0 0 20px #f2a900) hue-rotate(45deg)";
+                plane.style.filter = "drop-shadow(0 0 20px #f2a900) hue-rotate(45deg)";
                 boostSnd.play().catch(()=>{});
             }
-            let speedBoost = isSuperJet ? 0.05 : 0.01;
-            mult += speedBoost;
+            mult += isSuperJet ? 0.05 : 0.01;
             document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+            
             [1, 2].forEach(id => {
-                let b = id === 1 ? b1 : b2;
+                let b = (id === 1) ? b1 : b2;
                 if(b.active && !b.cashed) {
                     document.getElementById('btn'+id).innerText = "CASH OUT\nRs " + (b.amt * mult).toFixed(2);
                     let autoX = parseFloat(document.getElementById('autoX'+id).value);
-                    if(!isNaN(autoX) && mult >= auto
+                    if(!isNaN(autoX) && mult >= autoX) handleBet(id);
+                }
+            });
+
+            plane.style.left = (10 + (mult * 2)) + "%";
+            if(mult >= parseFloat(crashPoint)) crash(); 
+            else setTimeout(engine, 100);
+        }
+        engine();
+    }
+
+    function crash() {
+        isFlying = false; flySnd.pause(); boostSnd.pause();
+        crashSnd.play().catch(()=>{});
+        document.getElementById('mVal').innerText = "FLEW AWAY!";
+        document.getElementById('mVal').style.color = "red";
+        document.getElementById('plane').style.display = 'none';
+        addHistoryTag(parseFloat(crashPoint).toFixed(2));
+        
+        [1, 2].forEach(id => {
+            let b = (id === 1) ? b1 : b2; 
+            b.active = false; b.cashed = false;
+            document.getElementById('btn'+id).innerText = "BET";
+            document.getElementById('btn'+id).style.background = "#28a745";
+        });
+        setTimeout(start7sTimer, 3000);
+    }
+
+    function handleBet(id) {
+        let b = (id === 1) ? b1 : b2; 
+        let btn = document.getElementById('btn'+id);
+        let amt = parseFloat(document.getElementById('amt'+id).value);
+
+        if(isWaiting && !b.active) {
+            if(amt > balance || amt < 10) return alert("Low Balance");
+            db.ref('users/'+uid).update({ balance: balance - amt, wager: wager + amt });
+            b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "#991b1
