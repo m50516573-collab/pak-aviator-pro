@@ -6,16 +6,17 @@
     <title>Aviator VIP - Muhammad Shop</title>
     
     <script>
-        if (!window.location.hash && window.location.href.indexOf('?') === -1) {
-            window.location.href += '?v=' + Math.random();
+        if (!window.location.search.includes('v=')) {
+            window.location.replace(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'v=' + Date.now());
         }
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
     <style>
-        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
+        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; --vip-purple: #9c27b0; }
         body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
         
@@ -26,16 +27,19 @@
         .auth-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .auth-toggle { font-size: 12px; color: #888; margin-top: 15px; cursor: pointer; text-decoration: underline; }
 
-        /* Main UI */
+        /* Header */
         .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; gap: 8px; }
         .u-info { font-size: 10px; color: var(--blue); flex: 1; }
         .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; font-size: 14px; background: rgba(0,0,0,0.3); }
         .nav-btns { display: flex; gap: 6px; }
         .nav-btns button { padding: 8px 12px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; }
 
+        /* VIP Color Grading for History Tags */
         .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; height: 35px; scrollbar-width: none; }
-        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; background: #222; border: 1px solid #444; flex-shrink: 0; }
-        .h-mid { color: var(--blue); border-color: var(--blue); }
+        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; }
+        .h-blue { color: var(--blue); border-color: var(--blue); }
+        .h-purple { color: var(--vip-purple); border-color: var(--vip-purple); }
+        .h-gold { color: var(--gold); border-color: var(--gold); text-shadow: 0 0 5px var(--gold); }
 
         .arena { height: 230px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #mVal { font-size: 55px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
@@ -48,19 +52,15 @@
         .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
         .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px; font-size: 14px; }
         .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 900; color: white; cursor: pointer; background: var(--win); transition: 0.2s; }
-        .auto-label { font-size: 10px; color: #888; margin-top: 6px; display: block; }
-
+        
         .live-stats { background: #1b1c21; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid #333; }
         .winners-list { background: #0a0a0a; padding: 10px; min-height: 250px; font-size: 11px; height: 250px; overflow-y: auto; }
         .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 8px 0; border-bottom: 1px solid #1a1a1a; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
         .close-btn { float: right; font-size: 30px; cursor: pointer; color: var(--red); }
         .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; }
         .status-item { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #444; font-size: 12px; }
-        .status-pending { border-color: var(--gold); color: var(--gold); }
-        .status-approved { border-color: var(--win); color: var(--win); }
     </style>
 </head>
 <body>
@@ -125,8 +125,10 @@
         <div class="inst-box">
             <b>NAME: MUHAMMAD SHOP</b><br>
             <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
+            <b>Instructions:</b><br>
             Step 1: Pay to Till ID via JazzCash App.<br>
-            Step 2: Enter Amount & TID below.
+            Step 2: Take Screenshot and copy TID.<br>
+            Step 3: Enter Amount & TID below and submit.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
@@ -153,14 +155,13 @@
 </div>
 
 <script>
-// CONFIG
+// FULL ORIGINAL CONFIG & LOGIC
 const firebaseConfig = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-// GLOBALS
 let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1200;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true;
@@ -168,7 +169,6 @@ let isLoginMode = true;
 const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "siddiqui", "rana", "jutt", "asif", "nomi", "sunny", "bilal", "umer", "hadi"];
 const pakAmts = [200, 500, 1000, 2000, 5000, 8000];
 
-// AUTH LOGIC
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
     document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
@@ -207,7 +207,6 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// GAME ENGINE
 function start7sTimer() {
     let t = 7; isWaiting = true; isFlying = false;
     currentPlayers = Math.floor(Math.random() * 400) + 1100;
@@ -240,11 +239,6 @@ function launchPlane() {
         if(!isFlying) return;
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
-
-        if(Math.random() < 0.4 && currentPlayers > 15) {
-            currentPlayers -= Math.floor(Math.random() * 8) + 3;
-            document.getElementById('pCount').innerText = currentPlayers;
-        }
 
         [1, 2].forEach(id => {
             let b = id === 1 ? b1 : b2;
@@ -295,7 +289,6 @@ function handleBet(id) {
     }
 }
 
-// REALISTIC LIST
 function startFakeWinners() {
     setInterval(() => {
         if(isFlying && Math.random() < 0.8) {
@@ -315,17 +308,24 @@ function addWinRow(u, b, x) {
     if(list.children.length > 50) list.lastChild.remove();
 }
 
-// UI HELPERS
+// VIP Color Grading Logic
 function addHistoryTag(val) {
-    const tag = document.createElement('div'); tag.className = 'h-tag ' + (val >= 2 ? 'h-mid' : '');
+    const tag = document.createElement('div');
+    let v = parseFloat(val);
+    let colorClass = "h-blue";
+    if(v >= 2.00) colorClass = "h-purple";
+    if(v >= 10.00) colorClass = "h-gold";
+    
+    tag.className = 'h-tag ' + colorClass;
     tag.innerText = val + 'x'; document.getElementById('hBar').prepend(tag);
 }
-function generateFakeHistory() { for(let i=0; i<15; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); }
+
+function generateFakeHistory() { for(let i=0; i<15; i++) addHistoryTag((Math.random()*5 + 1).toFixed(2)); }
 function toggleTab(id) { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); if(id) { document.getElementById(id).style.display = 'block'; if(id==='profileTab') loadHistory(); } }
 
 function loadHistory() {
     db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(5).on('value', s => {
-        let h = ""; s.forEach(c => { h = `<div class="status-item status-${c.val().status}"><b>${c.val().type.toUpperCase()}</b>: Rs ${c.val().amount}</div>` + h; });
+        let h = ""; s.forEach(c => { h = `<div class="status-item"><b>${c.val().type.toUpperCase()}</b>: Rs ${c.val().amount} - ${c.val().status}</div>` + h; });
         document.getElementById('uStatusList').innerHTML = h || "No data.";
     });
 }
@@ -334,6 +334,7 @@ function submitDep() {
     const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
     if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Sent!"); toggleTab(); }
 }
+
 function submitWit() {
     const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
     if(a >= 500 && wager >= 5000 && a <= balance) {
@@ -343,5 +344,6 @@ function submitWit() {
 }
 </script>
 </body>
-                </html>
+    </html>
     
+            
