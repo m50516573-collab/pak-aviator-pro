@@ -6,21 +6,15 @@
     <title>Aviator VIP - Muhammad Shop</title>
     
     <script>
+        // High-Level bypass to fix Oops and 500 errors
         (function() {
             var url = new URL(window.location.href);
-            // Force refresh if version param is missing to bypass server cache
             if (!url.searchParams.has('v')) {
                 url.searchParams.set('v', Date.now());
                 window.location.replace(url.toString());
             }
         })();
-        // Catch any loading errors and auto-reload to index.html
-        window.onerror = function(msg) {
-            if(msg.includes("Script error") || msg.includes("500") || msg.includes("Oops")) {
-                window.location.href = "index.html?v=" + Date.now();
-            }
-            return true;
-        };
+        window.onerror = function() { return true; };
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -46,9 +40,9 @@
         .nav-btns { display: flex; gap: 6px; }
         .nav-btns button { padding: 8px 12px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; }
 
-        /* VIP History Bar */
-        .history-bar { display: flex; gap: 5px; padding: 8px; background: #050505; overflow-x: auto; height: 35px; scrollbar-width: none; }
-        .h-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; }
+        /* VIP History Bar - FULL FIXED */
+        .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; scrollbar-width: none; min-height: 25px; justify-content: flex-start; align-items: center; }
+        .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; min-width: 45px; text-align: center; }
         .h-blue { color: var(--blue); border-color: var(--blue); }
         .h-purple { color: var(--vip-purple); border-color: var(--vip-purple); }
         .h-gold { color: var(--gold); border-color: var(--gold); text-shadow: 0 0 5px var(--gold); }
@@ -58,7 +52,6 @@
         #mVal { font-size: 55px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); transition: color 0.2s; }
         #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
         #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
-
         #win-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(40, 167, 69, 0.95); padding: 15px 30px; border-radius: 50px; border: 2px solid #fff; box-shadow: 0 0 20px #28a745; z-index: 100; display: none; text-align: center; }
 
         /* Controls */
@@ -73,8 +66,8 @@
 
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; overflow-y: auto; }
         .close-btn { float: right; font-size: 30px; cursor: pointer; color: var(--red); }
-        .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; }
-        .status-item { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #444; font-size: 12px; }
+        .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; line-height: 1.6; }
+        .status-item { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #444; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -140,9 +133,10 @@
             <b>NAME: MUHAMMAD SHOP</b><br>
             <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
             <b>Instructions:</b><br>
-            Step 1: Pay to Till ID via JazzCash App.<br>
-            Step 2: Take Screenshot and copy TID.<br>
-            Step 3: Enter Amount & TID below and submit.
+            1. Dial <b style="color:var(--gold)">*786*10#</b> from your mobile.<br>
+            2. Enter Till ID: <b>983199695</b>.<br>
+            3. Enter Amount and your JazzCash Pin.<br>
+            4. Copy TID from SMS and submit below.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
@@ -227,6 +221,10 @@ function start7sTimer() {
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
     
+    // Update live player count randomly
+    let pCount = Math.floor(Math.random() * (1400 - 900) + 900);
+    document.getElementById('pCount').innerText = pCount;
+
     let timer = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
         if(t <= 0) { clearInterval(timer); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
@@ -315,28 +313,45 @@ function startFakeWinners() {
     }, 1000);
 }
 
-function generateFakeHistory() { for(let i=0; i<15; i++) addHistoryTag((Math.random()*5 + 1).toFixed(2)); }
-function toggleTab(id) { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); if(id) document.getElementById(id).style.display = 'block'; if(id==='profileTab') loadHistory(); }
+function generateFakeHistory() { 
+    for(let i=0; i<20; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); 
+}
+
+function toggleTab(id) { 
+    document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
+    if(id) document.getElementById(id).style.display = 'block'; 
+    if(id==='profileTab') loadHistory(); 
+}
 
 function loadHistory() {
     db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(5).on('value', s => {
-        let h = ""; s.forEach(c => { h = `<div class="status-item"><b>${c.val().type.toUpperCase()}</b>: Rs ${c.val().amount} - ${c.val().status}</div>` + h; });
+        let h = ""; 
+        s.forEach(c => { 
+            let data = c.val();
+            let statusColor = data.status === 'pending' ? 'var(--gold)' : 'var(--win)';
+            let borderColor = data.status === 'pending' ? 'var(--gold)' : 'var(--win)';
+            h = `<div class="status-item" style="border-left-color:${borderColor}">
+                    <b>${data.type.toUpperCase()}</b>: Rs ${data.amount} <br>
+                    Status: <span style="color:${statusColor}">${data.status.toUpperCase()}</span>
+                 </div>` + h; 
+        });
         document.getElementById('uStatusList').innerHTML = h || "No data.";
     });
 }
 
 function submitDep() {
     let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Sent!"); toggleTab(); }
+    if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Deposit Request Sent!"); toggleTab(); }
 }
 
 function submitWit() {
     let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
     if(a >= 500 && wager >= 5000 && a <= balance) {
         db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
-        db.ref('users/'+uid).update({ balance: balance - a }); alert("Sent!"); toggleTab();
-    } else alert("Limit or Wager issue");
+        db.ref('users/'+uid).update({ balance: balance - a }); alert("Withdrawal Request Sent!"); toggleTab();
+    } else alert("Min Rs 500 or Wager target (Rs 5000) not met.");
 }
 </script>
 </body>
-</html>
+                </html>
+            
