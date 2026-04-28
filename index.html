@@ -10,40 +10,45 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
     <style>
-        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; --vip-purple: #9c27b0; }
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow-x: hidden; }
-        #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; display: none; position: relative; }
+        :root { 
+            --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; 
+            --blue: #34b4ff; --gold: #f2a900; --vip: #9c27b0; 
+        }
+        body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow-x: hidden; }
+        #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
         
-        /* Auth Screen */
+        /* Auth Styles */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .auth-card { width: 85%; text-align: center; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; }
         .auth-input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 10px; background: #000; border: 1px solid #444; color: #fff; outline: none; }
         .auth-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; }
-        .auth-toggle { font-size: 12px; color: #888; margin-top: 15px; cursor: pointer; text-decoration: underline; }
 
-        /* VIP UI */
+        /* Header & Balance */
         .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; }
-        .u-info { font-size: 10px; color: var(--blue); }
         .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; font-size: 14px; }
         
-        .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; }
-        .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; }
-        .h-blue { color: var(--blue); } .h-purple { color: var(--vip-purple); } .h-gold { color: var(--gold); }
+        /* Game Arena */
+        .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; min-height: 35px; scrollbar-width: none; }
+        .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; }
+        .arena { height: 240px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #mVal { font-size: 60px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        #plane { position: absolute; font-size: 50px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); transition: left 0.1s linear; }
+        #super-jet-ui { position: absolute; top: 15%; color: var(--gold); font-weight: 900; font-size: 18px; display: none; animation: blink 0.6s infinite; z-index: 30; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
 
-        .arena { height: 230px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        #mVal { font-size: 55px; font-weight: 900; z-index: 10; }
-        #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; }
-        #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 10px 20px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); display: none; }
-
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
+        /* Controls */
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
         .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
-        .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
-        .b-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 900; color: white; background: var(--win); cursor: pointer; }
+        .b-input { width: 85%; background: #000; border: 1px solid #444; color: white; padding: 8px; border-radius: 8px; margin-bottom: 5px; text-align: center; }
+        .b-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 900; color: white; cursor: pointer; background: var(--win); }
+
+        /* Overlays */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1500; padding: 20px; overflow-y: auto; }
+        .close-btn { float: right; font-size: 30px; cursor: pointer; color: var(--red); }
+        .inst-box { background:#111; padding:15px; border-radius:10px; font-size:13px; border-left:4px solid var(--gold); margin-bottom:15px; color: #ccc; }
         
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; }
-        .close-btn { float: right; font-size: 30px; color: var(--red); cursor: pointer; }
-        .winners-list { background: #0a0a0a; padding: 10px; height: 200px; overflow-y: auto; font-size: 11px; }
-        .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 5px 0; border-bottom: 1px solid #1a1a1a; }
+        .winners-list { background: #0a0a0a; padding: 10px; height: 200px; overflow-y: auto; font-size: 11px; border-top: 1px solid #222; }
+        .win-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
     </style>
 </head>
 <body>
@@ -54,23 +59,27 @@
         <input type="email" id="auth-email" class="auth-input" placeholder="Email">
         <input type="password" id="auth-pass" class="auth-input" placeholder="Password">
         <button id="auth-main-btn" onclick="handleAuth()" class="auth-btn">LOGIN</button>
-        <p id="auth-toggle-text" class="auth-toggle" onclick="toggleAuthMode()">No account? Create one</p>
+        <p onclick="toggleAuth()" style="font-size:12px; color:#888; cursor:pointer; margin-top:15px; text-decoration:underline;">No account? Create one</p>
     </div>
 </div>
 
 <div id="app">
     <div class="header">
-        <div class="u-info"><span id="uGmail">...</span></div>
+        <div style="font-size:10px; color:var(--blue);">
+            <span id="uGmail">Loading...</span><br>
+            <span onclick="toggleTab('profTab')" style="cursor:pointer; text-decoration:underline;">MY PROFILE 👤</span>
+        </div>
         <div class="bal-box">Rs <span id="uBal">0.00</span></div>
-        <div class="nav-btns">
-            <button onclick="toggleTab('depTab')" style="background:var(--win); border:none; color:white; padding:5px 10px; border-radius:5px;">DEP</button>
+        <div style="display:flex; gap:5px;">
+            <button onclick="toggleTab('depTab')" style="background:var(--win); border:none; color:white; padding:6px 10px; border-radius:5px; font-size:11px; font-weight:bold;">DEP</button>
+            <button onclick="toggleTab('witTab')" style="background:var(--blue); border:none; color:white; padding:6px 10px; border-radius:5px; font-size:11px; font-weight:bold;">WIT</button>
         </div>
     </div>
 
     <div class="history-bar" id="hBar"></div>
 
     <div class="arena">
-        <div id="tBox">Next Round: 7s</div>
+        <div id="super-jet-ui">🚀 SUPER JET MODE ACTIVE!</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
     </div>
@@ -78,10 +87,12 @@
     <div class="controls-grid">
         <div class="bet-box">
             <input type="number" id="amt1" value="100" class="b-input">
+            <input type="number" id="autoX1" placeholder="Auto Cashout" class="b-input">
             <button id="btn1" onclick="handleBet(1)" class="b-btn">BET</button>
         </div>
         <div class="bet-box">
             <input type="number" id="amt2" value="100" class="b-input">
+            <input type="number" id="autoX2" placeholder="Auto Cashout" class="b-input">
             <button id="btn2" onclick="handleBet(2)" class="b-btn">BET</button>
         </div>
     </div>
@@ -90,115 +101,138 @@
 
     <div id="depTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
-        <h3 style="color:var(--gold);">DEPOSIT JAZZCASH</h3>
-        <p>Till ID: 983199695</p>
+        <h3 style="color:var(--gold); text-align:center;">JAZZCASH DEPOSIT</h3>
+        <div class="inst-box">
+            <b>NAME: MUHAMMAD SHOP</b><br>
+            <b>TILL ID: 983199695</b><br><br>
+            JazzCash App kholen, 'Till Payment' select karein aur upar wala ID daalein. Payment ke baad TID niche enter karein.
+        </div>
         <input type="number" id="dAmt" placeholder="Amount" class="auth-input">
-        <input type="text" id="dTid" placeholder="TID" class="auth-input">
-        <button onclick="submitDep()" class="auth-btn">SUBMIT</button>
+        <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="auth-input">
+        <button onclick="submitRequest('Deposit')" class="auth-btn">SUBMIT DEPOSIT</button>
+    </div>
+
+    <div id="witTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
+        <p style="font-size:12px; text-align:center; color:#888;">Minimum: Rs 500 | Wager Requirement: Rs 5000</p>
+        <input type="number" id="wAmt" placeholder="Amount" class="auth-input">
+        <input type="text" id="wNum" placeholder="JazzCash Number" class="auth-input">
+        <button onclick="submitRequest('Withdraw')" class="auth-btn" style="background:var(--blue);">SUBMIT WITHDRAW</button>
+    </div>
+
+    <div id="profTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3 style="text-align:center;">USER PROFILE</h3>
+        <div id="profData" style="background:#1b1c21; padding:20px; border-radius:15px; margin-bottom:20px;"></div>
+        <button onclick="auth.signOut()" class="auth-btn">LOGOUT</button>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-        databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-    };
-    
+    const firebaseConfig = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+    const auth = firebase.auth(), db = firebase.database();
 
-    let uid, balance = 0, isLoginMode = true;
-    let mult = 1.0, isFlying = false, isWaiting = true;
-    let b1 = { active: false, amt: 0, cashed: false };
-    let b2 = { active: false, amt: 0, cashed: false };
+    let uid, balance = 0, wager = 0, isLogin = true;
+    let mult = 1.0, isFlying = false, isWaiting = true, isSuper = false;
+    let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 
-    // Auth Logic
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
-        document.getElementById('auth-main-btn').innerText = isLoginMode ? "LOGIN" : "SIGNUP";
-    }
+    function toggleAuth() { isLogin = !isLogin; document.getElementById('auth-title').innerText = isLogin ? "AVIATOR LOGIN" : "AVIATOR SIGNUP"; }
 
     function handleAuth() {
-        const e = document.getElementById('auth-email').value;
-        const p = document.getElementById('auth-pass').value;
-        if(!e || !p) return alert("Fill data");
-
-        if(isLoginMode) {
+        const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
+        if(!e || !p) return alert("Fields fill karein");
+        if(isLogin) {
             auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
         } else {
             auth.createUserWithEmailAndPassword(e, p).then(res => {
-                db.ref('users/' + res.user.uid).set({ email: e, balance: 100 });
+                db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0 });
             }).catch(err => alert(err.message));
         }
     }
 
     auth.onAuthStateChanged(user => {
         if(user) {
-            uid = user.uid;
-            document.getElementById('uGmail').innerText = user.email;
+            uid = user.uid; document.getElementById('uGmail').innerText = user.email;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             db.ref('users/' + uid).on('value', s => {
-                balance = s.val()?.balance || 0;
+                let data = s.val(); balance = data?.balance || 0; wager = data?.wager || 0;
                 document.getElementById('uBal').innerText = balance.toFixed(2);
+                document.getElementById('profData').innerHTML = `<b>Email:</b> ${user.email}<br><br><b>Balance:</b> Rs ${balance.toFixed(2)}<br><b>Total Wager:</b> Rs ${wager}`;
             });
-            start7sTimer();
-            startFakeWinners();
+            startMainLoop(); startFakeWinners();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app').style.display = 'none';
         }
     });
 
-    // Game Logic
-    function start7sTimer() {
-        let t = 7; isWaiting = true; isFlying = false;
-        document.getElementById('tBox').style.display = 'block';
+    function startMainLoop() {
+        let t = 7; isWaiting = true; isFlying = false; isSuper = false;
+        const mVal = document.getElementById('mVal');
+        mVal.style.color = "white";
         document.getElementById('plane').style.display = 'none';
-        document.getElementById('mVal').innerText = "WAITING";
+        document.getElementById('super-jet-ui').style.display = 'none';
         
         let timer = setInterval(() => {
-            document.getElementById('tBox').innerText = `Next Round: ${t}s`;
-            if(t <= 0) { clearInterval(timer); document.getElementById('tBox').style.display = 'none'; launchPlane(); }
+            mVal.innerText = "WAITING " + t + "s";
+            if(t <= 0) { clearInterval(timer); launch(); }
             t--;
         }, 1000);
     }
 
-    function launchPlane() {
+    function launch() {
         isWaiting = false; isFlying = true; mult = 1.0;
-        document.getElementById('plane').style.display = 'block';
-        let crashPoint = (Math.random() * 3 + 1).toFixed(2);
+        const plane = document.getElementById('plane');
+        plane.style.display = 'block'; plane.style.left = "10%";
+        
+        // Dynamic Crash Point Logic
+        let crash = (Math.random() > 0.3 ? (Math.random() * 5 + 1.1) : (Math.random() * 0.4 + 1.01)).toFixed(2);
 
         function engine() {
             if(!isFlying) return;
-            mult += 0.01;
+            if(mult >= 2.0 && !isSuper) {
+                isSuper = true;
+                document.getElementById('super-jet-ui').style.display = 'block';
+                plane.style.filter = "drop-shadow(0 0 15px gold) hue-rotate(90deg)";
+            }
+            mult += isSuper ? 0.04 : 0.01;
             document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
-            
+            plane.style.left = (10 + (mult * 3)) + "%";
+
+            // Auto Cashout Check
             [1, 2].forEach(id => {
                 let b = (id === 1) ? b1 : b2;
+                let autoX = parseFloat(document.getElementById('autoX' + id).value);
                 if(b.active && !b.cashed) {
-                    document.getElementById('btn'+id).innerText = "CASH OUT\n" + (b.amt * mult).toFixed(2);
+                    document.getElementById('btn'+id).innerText = "CASH Rs " + (b.amt * mult).toFixed(2);
+                    if(!isNaN(autoX) && mult >= autoX) handleBet(id);
                 }
             });
 
-            if(mult >= crashPoint) crash();
-            else setTimeout(engine, 100);
+            if(mult >= crash) {
+                finishRound(crash);
+            } else {
+                setTimeout(engine, 100);
+            }
         }
         engine();
     }
 
-    function crash() {
+    function finishRound(crashVal) {
         isFlying = false;
         document.getElementById('mVal').innerText = "FLEW AWAY!";
-        addHistory(mult.toFixed(2));
+        document.getElementById('mVal').style.color = "red";
         [1, 2].forEach(id => {
-            let b = (id === 1) ? b1 : b2; b.active = false; b.cashed = false;
+            let b = (id === 1) ? b1 : b2;
+            b.active = false; b.cashed = false;
             document.getElementById('btn'+id).innerText = "BET";
-            document.getElementById('btn'+id).style.background = "#28a745";
+            document.getElementById('btn'+id).style.background = "var(--win)";
         });
-        setTimeout(start7sTimer, 3000);
+        addHistory(crashVal);
+        setTimeout(startMainLoop, 3000);
     }
 
     function handleBet(id) {
@@ -207,42 +241,58 @@
         let btn = document.getElementById('btn'+id);
 
         if(isWaiting && !b.active) {
-            if(amt > balance) return alert("Low Bal");
-            db.ref('users/'+uid).update({ balance: balance - amt });
-            b.active = true; b.amt = amt; btn.innerText = "CANCEL"; btn.style.background = "red";
+            if(amt > balance || amt < 10) return alert("Invalid Balance");
+            db.ref('users/'+uid).update({ balance: balance - amt, wager: wager + amt });
+            b.active = true; b.amt = amt;
+            btn.innerText = "CANCEL"; btn.style.background = "var(--red)";
         } else if(isFlying && b.active && !b.cashed) {
             let win = b.amt * mult;
             db.ref('users/'+uid).update({ balance: balance + win });
-            b.cashed = true; btn.innerText = "WON!"; btn.style.background = "gold";
+            b.cashed = true;
+            btn.innerText = "WIN Rs " + win.toFixed(2);
+            btn.style.background = "var(--gold)";
         }
     }
 
     function addHistory(val) {
         let tag = document.createElement('div');
-        tag.className = 'h-tag ' + (val > 2 ? 'h-purple' : 'h-blue');
-        tag.innerText = val + 'x';
-        document.getElementById('hBar').prepend(tag);
+        tag.className = 'h-tag';
+        if(val > 10) tag.style.color = "var(--gold)";
+        else if(val > 2) tag.style.color = "var(--vip)";
+        else tag.style.color = "var(--blue)";
+        tag.innerText = val + "x";
+        let bar = document.getElementById('hBar');
+        bar.prepend(tag);
+        if(bar.children.length > 15) bar.lastChild.remove();
     }
 
     function startFakeWinners() {
         setInterval(() => {
             if(isFlying) {
-                let row = document.createElement('div'); row.className = 'win-row';
-                row.innerHTML = `<span>User...</span><span>Rs 100</span><span style="color:green">${(Math.random()*mult).toFixed(2)}x</span>`;
-                document.getElementById('winRows').prepend(row);
+                let row = document.createElement('div');
+                row.className = 'win-row';
+                row.innerHTML = `<span>User_${Math.floor(Math.random()*999)}</span><span>Rs ${Math.floor(Math.random()*1000)}</span><span style="color:var(--win)">${(mult * 0.8).toFixed(2)}x</span>`;
+                let box = document.getElementById('winRows');
+                box.prepend(row);
+                if(box.children.length > 15) box.lastChild.remove();
             }
-        }, 2000);
+        }, 2500);
     }
 
     function toggleTab(id) {
-        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
         if(id) document.getElementById(id).style.display = 'block';
     }
 
-    function submitDep() {
-        let a = document.getElementById('dAmt').value; let t = document.getElementById('dTid').value;
-        if(a && t) { db.ref('requests').push({ uid, amt: a, tid: t, type: 'Dep' }); alert("Sent!"); toggleTab(); }
+    function submitRequest(type) {
+        let amt = document.getElementById(type === 'Deposit' ? 'dAmt' : 'wAmt').value;
+        let detail = document.getElementById(type === 'Deposit' ? 'dTid' : 'wNum').value;
+        if(!amt || !detail) return alert("Details fill karein");
+        db.ref('requests').push({ uid, email: auth.currentUser.email, amount: amt, detail: detail, type: type, status: 'pending' });
+        alert(type + " Request Sent!");
+        toggleTab();
     }
 </script>
+
 </body>
 </html>
