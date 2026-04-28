@@ -3,162 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PAK AVIATOR PRO | B9 VIP</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>PAK Aviator - VIP Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #ea0606; --accent: #28a745; --dark: #12131a; --card: #1b1c21; }
-        body { margin: 0; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
-        #app { max-width: 480px; margin: auto; height: 100vh; display: flex; flex-direction: column; background: var(--dark); }
-        .header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; background: #14151b; border-bottom: 1px solid #222; }
-        .bal-box { background: #000; padding: 6px 15px; border-radius: 20px; border: 1px solid var(--accent); color: var(--accent); font-weight: 800; }
-        .arena { height: 40vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at bottom, #1a0505, #000); overflow: hidden; }
-        #mVal { font-size: 80px; font-weight: 900; z-index: 10; text-shadow: 0 0 30px rgba(255,0,0,0.5); }
-        #plane { position: absolute; width: 110px; z-index: 5; transition: 0.1s linear; }
-        .history-bar { height: 35px; background: #0d0e12; display: flex; align-items: center; padding: 5px; gap: 8px; overflow-x: auto; border-bottom: 1px solid #222; }
-        .hist-item { font-size: 11px; font-weight: bold; background: #222; padding: 3px 10px; border-radius: 10px; color: #34b4ff; }
-        .bet-area { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex-grow: 1; background: #000; }
-        .control-panel { background: var(--card); border-radius: 15px; padding: 12px; border: 1px solid #2a2b31; display: flex; flex-direction: column; }
-        .input-box { background: #000; display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
-        .input-box input { background: transparent; border: none; color: #fff; width: 50px; text-align: center; font-size: 18px; font-weight: 800; }
-        .btn-main { height: 70px; border: none; border-radius: 12px; font-weight: 900; font-size: 20px; color: #fff; cursor: pointer; transition: 0.2s; }
-        .btn-bet { background: var(--accent); box-shadow: inset 0 -4px 0 #1e7e34; }
+        :root { --red: #ea0606; --bg: #12131a; --card: #1e1f26; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
+        body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow: hidden; height: 100vh; }
+        #app { max-width: 450px; margin: auto; background: var(--bg); height: 100vh; position: relative; display: none; flex-direction: column; }
+        
+        .header { display: flex; justify-content: space-between; padding: 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; }
+        .u-info { font-size: 10px; color: var(--blue); }
+        .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; background: rgba(0,0,0,0.4); }
+        .nav-btns button { padding: 8px 12px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; margin-left: 5px; }
+
+        .history-bar { display: flex; gap: 6px; padding: 8px; background: #050505; overflow-x: auto; height: 35px; scrollbar-width: none; border-bottom: 1px solid #222; }
+        .h-tag { padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background: #1a1a1a; border: 1px solid #333; flex-shrink: 0; }
+        .h-high { color: #9c27b0; border-color: #9c27b0; }
+        .h-mid { color: var(--blue); border-color: var(--blue); }
+
+        .arena { height: 38vh; background: radial-gradient(circle at bottom, #2a0505, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #111; }
+        .grid { position: absolute; width: 200%; height: 200%; background-image: linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px); background-size: 40px 40px; transform: rotateX(60deg); top: -50%; opacity: 0.3; }
+        #mVal { font-size: 65px; font-weight: 900; z-index: 10; transition: 0.1s; }
+        #plane { position: absolute; width: 100px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 15px var(--red)); }
+        #tBox { position: absolute; background: rgba(0,0,0,0.8); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; font-size: 18px; }
+
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: #000; flex-grow: 1; }
+        .bet-box { background: var(--card); padding: 12px; border-radius: 15px; border: 1px solid #2a2b31; display: flex; flex-direction: column; justify-content: space-between; }
+        .b-input-grp { background: #000; border-radius: 10px; padding: 5px; display: flex; align-items: center; margin-bottom: 8px; border: 1px solid #333; }
+        .b-input-grp input { width: 100%; background: transparent; border: none; color: white; text-align: center; font-size: 16px; font-weight: bold; outline: none; }
+        .b-btn { width: 100%; height: 60px; border: none; border-radius: 12px; font-size: 18px; font-weight: 900; color: white; cursor: pointer; transition: 0.2s; }
+        .btn-bet { background: var(--win); box-shadow: inset 0 -4px 0 #1e7e34; }
         .btn-cash { background: #d97706; box-shadow: inset 0 -4px 0 #92400e; }
         .btn-wait { background: #4b5563; }
-        .auto-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; margin-top: 10px; color: #888; }
-        @keyframes crash { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        .auto-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; }
+
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1000; padding: 20px; }
+        .close-btn { float: right; font-size: 28px; color: var(--red); font-weight: bold; }
+        .b-input { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        @keyframes flyAway { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(500px, -500px) scale(0); } }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="header">
-            <div style="color:var(--primary); font-weight:900; font-size:22px;">PAK AVIATOR</div>
-            <div class="bal-box">Rs <span id="userBal">0.00</span></div>
+
+<div id="auth-screen">
+    <div style="width:85%; max-width:350px; text-align:center; background:var(--card); padding:30px; border-radius:20px; border:1px solid var(--red);">
+        <h1 style="color:var(--red); margin-bottom:20px;">PAK AVIATOR</h1>
+        <input type="email" id="l-email" placeholder="Email" class="b-input">
+        <input type="password" id="l-pass" placeholder="Password" class="b-input">
+        <button onclick="login()" style="width:100%; padding:15px; background:var(--red); border:none; border-radius:10px; color:#fff; font-weight:bold; cursor:pointer;">SECURE LOGIN</button>
+    </div>
+</div>
+
+<div id="app">
+    <div class="header">
+        <div class="u-info"><span id="uGmail">...</span><br><span id="uWager" style="color:#888; font-size:9px;">Wager: 0/5000</span></div>
+        <div class="bal-box">Rs <span id="uBal">0.00</span></div>
+        <div class="nav-btns">
+            <button onclick="toggleTab('depTab')" style="background:var(--win);">DEPOSIT</button>
+            <button onclick="toggleTab('witTab')" style="background:var(--blue);">WITHDRAW</button>
         </div>
-        <div class="history-bar" id="hist"></div>
-        <div class="arena">
-            <div id="status-tag" style="position:absolute; top:20px; font-size:12px; color:#666; font-weight:bold;">WAITING FOR NEXT ROUND</div>
-            <div id="mVal">1.00x</div>
-            <img src="https://aviator-next.spribegaming.com/aviator-plane.663c6396f905541e.svg" id="plane" style="display:none;">
-        </div>
-        <div class="bet-area">
-            <div class="control-panel">
-                <div class="input-box">
-                    <button onclick="adj(1,-50)" style="color:red;border:none;background:none;font-size:20px;">-</button>
-                    <input type="number" id="amt1" value="100">
-                    <button onclick="adj(1,50)" style="color:green;border:none;background:none;font-size:20px;">+</button>
-                </div>
-                <button id="btn1" onclick="action(1)" class="btn-main btn-bet">BET</button>
-                <div class="auto-row"><span>AUTO CASH</span><input type="number" id="auto1" placeholder="2.0" style="width:35px;background:#000;border:1px solid #444;color:#fff;"></div>
+    </div>
+
+    <div class="history-bar" id="hBar"></div>
+    <div class="arena">
+        <div class="grid"></div>
+        <div id="tBox">NEXT ROUND IN 7s</div>
+        <div id="mVal">1.00x</div>
+        <img src="https://aviator-next.spribegaming.com/aviator-plane.663c6396f905541e.svg" id="plane">
+    </div>
+
+    <div class="controls-grid">
+        <div class="bet-box">
+            <div class="b-input-grp">
+                <button onclick="adj(1,-50)" style="color:red; background:none; border:none; font-size:20px; cursor:pointer;">-</button>
+                <input type="number" id="amt1" value="100">
+                <button onclick="adj(1,50)" style="color:green; background:none; border:none; font-size:20px; cursor:pointer;">+</button>
             </div>
-            <div class="control-panel">
-                <div class="input-box">
-                    <button onclick="adj(2,-50)" style="color:red;border:none;background:none;font-size:20px;">-</button>
-                    <input type="number" id="amt2" value="100">
-                    <button onclick="adj(2,50)" style="color:green;border:none;background:none;font-size:20px;">+</button>
-                </div>
-                <button id="btn2" onclick="action(2)" class="btn-main btn-bet">BET</button>
-                <div class="auto-row"><span>AUTO CASH</span><input type="number" id="auto2" placeholder="2.0" style="width:35px;background:#000;border:1px solid #444;color:#fff;"></div>
+            <button id="btn1" onclick="handleAction(1)" class="b-btn btn-bet">BET</button>
+            <div class="auto-row">
+                <span>Auto Cash</span>
+                <input type="number" id="autoX1" placeholder="2.0" style="width:40px; background:#000; border:1px solid #444; color:#fff; text-align:center;">
+            </div>
+        </div>
+        <div class="bet-box">
+            <div class="b-input-grp">
+                <button onclick="adj(2,-50)" style="color:red; background:none; border:none; font-size:20px; cursor:pointer;">-</button>
+                <input type="number" id="amt2" value="100">
+                <button onclick="adj(2,50)" style="color:green; background:none; border:none; font-size:20px; cursor:pointer;">+</button>
+            </div>
+            <button id="btn2" onclick="handleAction(2)" class="btn-main b-btn btn-bet">BET</button>
+            <div class="auto-row">
+                <span>Auto Cash</span>
+                <input type="number" id="autoX2" placeholder="2.0" style="width:40px; background:#000; border:1px solid #444; color:#fff; text-align:center;">
             </div>
         </div>
     </div>
 
+    <div id="depTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3 style="color:var(--gold); text-align:center;">DEPOSIT (JAZZCASH TILL)</h3>
+        <div style="background:#111; padding:15px; border-radius:10px; font-size:12px; margin-bottom:15px; border-left:4px solid var(--gold);">
+            <b>Till ID: 983199695</b><br>App se Till Payment karein aur TID niche likhen.
+        </div>
+        <input type="number" id="dAmt" placeholder="Amount" class="b-input">
+        <input type="text" id="dTid" placeholder="TID Number" class="b-input">
+        <button onclick="submitReq('deposit')" class="b-btn btn-bet" style="width:100%">SUBMIT</button>
+    </div>
+
+    <div id="witTab" class="overlay">
+        <span class="close-btn" onclick="toggleTab()">×</span>
+        <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
+        <input type="number" id="wAmt" placeholder="Amount (Min 500)" class="b-input">
+        <input type="text" id="wNum" placeholder="Account Number" class="b-input">
+        <button onclick="submitReq('withdraw')" class="b-btn" style="width:100%; background:var(--blue)">SUBMIT</button>
+    </div>
+</div>
+
 <script>
-    const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
-    firebase.initializeApp(conf);
-    const db = firebase.database(), auth = firebase.auth();
-    let uid, bal = 0, mult = 1.0, flying = false, waiting = true;
-    let bets = { 1: {active:false, amt:0, cashed:false}, 2: {active:false, amt:0, cashed:false} };
+const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
+firebase.initializeApp(conf);
+const auth = firebase.auth(), db = firebase.database();
 
-    auth.onAuthStateChanged(user => {
-        if(user) { uid = user.uid; setupUser(); } 
-        else { auth.signInAnonymously(); }
-    });
+let uid, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true;
+let bets = { 1: {active: false, amt: 0, cashed: false}, 2: {active: false, amt: 0, cashed: false} };
 
-    function setupUser() {
-        db.ref('users/'+uid).on('value', s => {
-            if(!s.exists()) db.ref('users/'+uid).set({balance:5000});
-            bal = s.val().balance || 0;
-            document.getElementById('userBal').innerText = bal.toFixed(2);
+function toggleTab(id) { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); if(id) document.getElementById(id).style.display = 'block'; }
+function adj(id, v) { let i = document.getElementById('amt'+id); i.value = Math.max(10, parseInt(i.value) + v); }
+
+function login() {
+    const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
+    auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
+}
+
+auth.onAuthStateChanged(user => {
+    if(user) {
+        uid = user.uid;
+        document.getElementById('uGmail').innerText = user.email;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        db.ref('users/' + uid).on('value', s => {
+            if(!s.exists()) db.ref('users/'+uid).set({email: user.email, balance: 100, wager: 0});
+            balance = s.val().balance || 0; wager = s.val().wager || 0;
+            document.getElementById('uBal').innerText = balance.toFixed(2);
+            document.getElementById('uWager').innerText = `Wager: ${wager.toFixed(0)}/5000`;
         });
-        db.ref('game_state').on('value', snap => {
-            const d = snap.val(); if(!d) return;
-            mult = d.mult; flying = d.isFlying; waiting = d.isWaiting;
-            updateUI(d);
-        });
+        syncGame();
     }
+});
 
-    function updateUI(d) {
-        const m = document.getElementById('mVal'), p = document.getElementById('plane'), st = document.getElementById('status-tag');
-        if(waiting) {
-            m.innerText = "WAITING"; m.style.color = "#fff"; p.style.display = "none";
-            st.innerText = "NEXT ROUND IN " + d.timer + "s";
-            resetBtns();
-        } else if(flying) {
-            m.innerText = mult.toFixed(2) + "x"; m.style.color = "#fff"; p.style.display = "block";
-            p.style.left = Math.min(10 + (mult * 10), 70) + "%";
-            p.style.bottom = Math.min(10 + (mult * 5), 60) + "%";
-            st.innerText = "PLANE IS FLYING";
-            liveUpdate(); checkAuto();
+function syncGame() {
+    db.ref('game_state').on('value', snap => {
+        const d = snap.val(); if(!d) return;
+        mult = d.mult; isFlying = d.isFlying; isWaiting = d.isWaiting;
+        
+        const mDisp = document.getElementById('mVal'), plane = document.getElementById('plane'), tBox = document.getElementById('tBox');
+        
+        if(isWaiting) {
+            mDisp.innerText = "WAITING"; mDisp.style.color = "#fff";
+            tBox.style.display = "block"; tBox.innerText = `NEXT ROUND IN ${d.timer}s`;
+            plane.style.display = "none"; plane.style.animation = "";
+            resetButtons();
+        } else if(isFlying) {
+            tBox.style.display = "none";
+            plane.style.display = "block";
+            mDisp.innerText = mult.toFixed(2) + "x";
+            plane.style.left = Math.min(10 + (mult * 5), 75) + "%";
+            plane.style.bottom = Math.min(15 + (mult * 3), 65) + "%";
+            updateLiveBets();
+            checkAutoCash();
         } else {
-            m.innerText = "FLEW AWAY!"; m.style.color = "#ea0606";
-            p.style.animation = "crash 0.4s forwards";
-            setTimeout(() => { p.style.display = "none"; p.style.animation = ""; }, 500);
-            st.innerText = "CRASHED";
+            mDisp.innerText = "FLEW AWAY!"; mDisp.style.color = "var(--red)";
+            plane.style.animation = "flyAway 0.5s forwards";
+            clearRound();
         }
-    }
+    });
+}
 
-    function action(id) {
-        const a = parseFloat(document.getElementById('amt'+id).value);
-        if(waiting && !bets[id].active) {
-            if(a > bal) return alert("Low Balance");
-            db.ref('users/'+uid).update({balance: bal - a});
-            bets[id] = {active:true, amt:a, cashed:false};
-            const b = document.getElementById('btn'+id);
-            b.className = "btn-main btn-wait"; b.innerText = "WAITING...";
-        } else if(flying && bets[id].active && !bets[id].cashed) {
-            doCash(id);
-        }
+function handleAction(id) {
+    const amt = parseFloat(document.getElementById('amt'+id).value);
+    if(isWaiting && !bets[id].active) {
+        if(amt > balance) return alert("Low Balance");
+        db.ref('users/'+uid).update({balance: balance - amt, wager: wager + amt});
+        bets[id] = {active: true, amt: amt, cashed: false};
+        setBtn(id, "CANCEL", "btn-wait");
+    } else if(isFlying && bets[id].active && !bets[id].cashed) {
+        cashOut(id);
+    } else if(isWaiting && bets[id].active) {
+        db.ref('users/'+uid).update({balance: balance + bets[id].amt, wager: wager - bets[id].amt});
+        bets[id].active = false;
+        setBtn(id, "BET", "btn-bet");
     }
+}
 
-    function doCash(id) {
-        const win = bets[id].amt * mult;
-        db.ref('users/'+uid).update({balance: bal + win});
-        bets[id].cashed = true; bets[id].active = false;
-        const b = document.getElementById('btn'+id);
-        b.style.background = "#059669"; b.innerText = "Rs " + win.toFixed(2);
-    }
+function cashOut(id) {
+    const win = bets[id].amt * mult;
+    db.ref('users/'+uid).update({balance: balance + win});
+    bets[id].cashed = true;
+    const b = document.getElementById('btn'+id);
+    b.style.background = "#155724"; b.innerHTML = `WIN<br>Rs ${win.toFixed(2)}`;
+}
 
-    function checkAuto() {
-        [1,2].forEach(i => {
-            let v = parseFloat(document.getElementById('auto'+i).value);
-            if(v && mult >= v && bets[i].active && !bets[i].cashed) doCash(i);
-        });
-    }
+function checkAutoCash() {
+    [1,2].forEach(i => {
+        let target = parseFloat(document.getElementById('autoX'+i).value);
+        if(target > 1 && mult >= target && bets[i].active && !bets[i].cashed) cashOut(i);
+    });
+}
 
-    function liveUpdate() {
-        [1,2].forEach(i => {
-            if(bets[i].active && !bets[i].cashed) {
-                const b = document.getElementById('btn'+i);
-                b.className = "btn-main btn-cash";
-                b.innerHTML = `CASH OUT<br><small>Rs ${(bets[i].amt * mult).toFixed(2)}</small>`;
-            }
-        });
-    }
-
-    function resetBtns() {
-        [1,2].forEach(i => { if(!bets[i].active) { 
+function updateLiveBets() {
+    [1,2].forEach(i => {
+        if(bets[i].active && !bets[i].cashed) {
             const b = document.getElementById('btn'+i);
-            b.className = "btn-main btn-bet"; b.innerText = "BET"; b.style.background = "";
-        }});
-    }
+            b.className = "b-btn btn-cash";
+            b.innerHTML = `CASH OUT<br>Rs ${(bets[i].amt * mult).toFixed(2)}`;
+        }
+    });
+}
 
-    function adj(id, v) { 
-        const i = document.getElementById('amt'+id);
-        i.value = Math.max(10, parseInt(i.value) + v);
-    }
+function resetButtons() {
+    [1,2].forEach(i => {
+        if(!bets[i].active) setBtn(i, "BET", "btn-bet");
+    });
+}
+
+function clearRound() {
+    [1,2].forEach(i => { bets[i].active = false; bets[i].cashed = false; });
+}
+
+function setBtn(id, txt, cls) {
+    const b = document.getElementById('btn'+id);
+    b.className = "b-btn " + cls; b.innerText = txt; b.style.background = "";
+}
+
+function submitReq(type) {
+    const a = type === 'deposit' ? document.getElementById('dAmt').value : document.getElementById('wAmt').value;
+    const detail = type === 'deposit' ? document.getElementById('dTid').value : document.getElementById('wNum').value;
+    if(!a || !detail) return alert("Fill all fields");
+    if(type === 'withdraw' && (a < 500 || wager < 5000)) return alert("Min 500 Withdraw & 5000 Wager required");
+    
+    db.ref('requests').push({uid, email: auth.currentUser.email, amount: a, detail, type, status: 'pending'});
+    alert("Request Sent!"); toggleTab();
+}
 </script>
 </body>
-</html>
+                                                           </html>
+    
