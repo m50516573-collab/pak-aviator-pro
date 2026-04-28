@@ -34,6 +34,9 @@
         #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
         #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 10px 20px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
 
+        /* Win Popup Style */
+        #win-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(40, 167, 69, 0.95); padding: 15px 30px; border-radius: 50px; border: 2px solid #fff; box-shadow: 0 0 20px #28a745; z-index: 100; display: none; text-align: center; min-width: 150px; pointer-events: none; }
+
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
         .bet-box { background: #14151b; padding: 10px; border-radius: 15px; border: 1px solid #333; text-align: center; }
         .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 8px; border-radius: 8px; text-align: center; margin-bottom: 5px; font-size: 14px; }
@@ -90,6 +93,10 @@
         <div id="tBox">Next Round: 7s</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
+        <div id="win-pop">
+            <div style="font-size:12px; color:white;">YOU CASHED OUT!</div>
+            <div id="pop-win-val" style="font-size:22px; font-weight:bold; color:white;">0.00x</div>
+        </div>
     </div>
 
     <div class="live-stats"><span>LIVE PLAYERS</span><span style="color:var(--win); font-weight:bold;">● <span id="pCount">1245</span></span></div>
@@ -151,6 +158,8 @@
 const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(conf);
 const auth = firebase.auth(), db = firebase.database();
+
+const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3'); // Aviator Cashout Sound Link
 
 let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
@@ -220,6 +229,17 @@ function start7sTimer() {
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
+
+    // Change Button Text to CASHOUT when plane flies
+    [1, 2].forEach(id => {
+        let b = id === 1 ? b1 : b2;
+        if(b.active && !b.cashed) {
+            const btn = document.getElementById('btn' + id);
+            btn.innerText = "CASH OUT";
+            btn.style.background = "linear-gradient(to bottom, #f2a900, #b8860b)"; // Goldish color for cashout
+        }
+    });
+
     let frameRate = 100;
     
     function move() {
@@ -227,6 +247,15 @@ function launchPlane() {
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
         
+        // Dynamic Button Update for Active Bets
+        [1, 2].forEach(id => {
+            let b = id === 1 ? b1 : b2;
+            if(b.active && !b.cashed) {
+                const btn = document.getElementById('btn' + id);
+                btn.innerText = "CASH OUT\nRs " + (b.amt * mult).toFixed(2);
+            }
+        });
+
         if(mult > 50) frameRate = 10;
         else if(mult > 10) frameRate = 25;
         else if(mult > 5) frameRate = 50;
@@ -262,7 +291,8 @@ function crash() {
     addHistoryTag(mult.toFixed(2));
     [1, 2].forEach(id => {
         let b = id === 1 ? b1 : b2; b.active = false; b.cashed = false;
-        document.getElementById('btn' + id).innerText = "BET"; document.getElementById('btn' + id).style.background = "#28a745";
+        document.getElementById('btn' + id).innerText = "BET"; 
+        document.getElementById('btn' + id).style.background = "#28a745";
     });
     setTimeout(start7sTimer, 3000);
 }
@@ -270,16 +300,37 @@ function crash() {
 function handleBet(id) {
     let b = id === 1 ? b1 : b2; const btn = document.getElementById('btn' + id);
     const amt = parseFloat(document.getElementById('amt' + id).value);
+    
     if(isWaiting && !b.active) {
         if(amt > balance) return alert("Low Balance");
         db.ref('users/'+uid).update({balance: balance - amt, wager: wager + amt});
         b.active = true; b.amt = amt; b.cashed = false;
         btn.innerText = "CANCEL"; btn.style.background = "#991b1b";
+    } else if(isWaiting && b.active) {
+        // Cancel logic
+        db.ref('users/'+uid).update({balance: balance + b.amt, wager: wager - b.amt});
+        b.active = false; btn.innerText = "BET"; btn.style.background = "#28a745";
     } else if(isFlying && b.active && !b.cashed) {
-        let win = b.amt * mult; db.ref('users/'+uid).update({balance: balance + win});
-        b.cashed = true; btn.innerText = "WON Rs " + win.toFixed(0); btn.style.background = "#155724";
+        // Cashout logic
+        let win = b.amt * mult; 
+        db.ref('users/'+uid).update({balance: balance + win});
+        b.cashed = true; 
+        btn.innerText = "WON Rs " + win.toFixed(0); 
+        btn.style.background = "#155724";
+        
+        // Sound & Popup
+        try { cashoutSound.play(); } catch(e){}
+        showWinPop(mult.toFixed(2), win.toFixed(2));
+        
         addWinRow("YOU ("+userEmail.split('@')[0]+")", b.amt, mult.toFixed(2));
     }
+}
+
+function showWinPop(x, rs) {
+    const pop = document.getElementById('win-pop');
+    document.getElementById('pop-win-val').innerText = x + "x";
+    pop.style.display = 'block';
+    setTimeout(() => { pop.style.display = 'none'; }, 2000);
 }
 
 function addWinRow(u, b, x) {
@@ -302,12 +353,4 @@ function startFakeWinners() {
 }
 
 function generateFakeHistory() { const hBar = document.getElementById('hBar'); for(let i=0; i<30; i++) { addHistoryTag((Math.random()*4 + 1).toFixed(2)); } }
-function addHistoryTag(val) { const hBar = document.getElementById('hBar'); const tag = document.createElement('div'); tag.className = 'h-tag ' + (val >= 10 ? 'h-high' : (val >= 2 ? 'h-mid' : '')); tag.innerText = val + 'x'; hBar.prepend(tag); }
-function submitDep() { const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value; if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Deposit Request Sent!"); } toggleTab(); }
-function submitWit() { const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value; if(a >= 500 && wager >= 5000 && a <= balance) { db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'}); db.ref('users/'+uid).update({balance: balance - a}); alert("Withdraw Request Sent!"); } else { alert("Check Amount/Wager/Balance"); } toggleTab(); }
-function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
-function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
-function startBonusTimer() { setInterval(() => { if(uid) document.getElementById('bonus-popup').style.display = 'block'; }, 180000); }
-</script>
-</body>
-</html>
+function addHistoryTag(val) { const hBar = document.getElementById('hBar'); const tag = document.createElement('div'); tag.className = 'h-tag ' + (val >= 10 ? 'h-high' : (val >= 2 ? 'h-mid' : '')); tag.innerText = val + '
