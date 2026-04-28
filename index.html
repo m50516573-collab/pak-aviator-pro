@@ -6,7 +6,6 @@
     <title>Aviator VIP - Muhammad Shop</title>
     
     <script>
-        // High-Level bypass to fix Oops and 500 errors
         (function() {
             var url = new URL(window.location.href);
             if (!url.searchParams.has('v')) {
@@ -26,35 +25,30 @@
         body { margin: 0; background: #000; color: white; font-family: 'Roboto', sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         #app { max-width: 450px; margin: auto; background: var(--bg); min-height: 100vh; position: relative; display: none; }
         
-        /* Auth Screen */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .auth-card { width: 85%; text-align: center; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; }
         .auth-input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 10px; background: #000; border: 1px solid #444; color: #fff; font-size: 14px; outline: none; }
         .auth-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .auth-toggle { font-size: 12px; color: #888; margin-top: 15px; cursor: pointer; text-decoration: underline; }
 
-        /* Header */
         .header { display: flex; justify-content: space-between; padding: 12px 10px; background: #1b1c21; align-items: center; border-bottom: 1px solid #333; gap: 8px; }
         .u-info { font-size: 10px; color: var(--blue); flex: 1; }
         .bal-box { border: 1.5px solid var(--win); border-radius: 20px; padding: 4px 12px; color: var(--win); font-weight: 800; font-size: 14px; background: rgba(0,0,0,0.3); }
         .nav-btns { display: flex; gap: 6px; }
         .nav-btns button { padding: 8px 12px; border-radius: 6px; border: none; font-size: 10px; font-weight: bold; color: white; cursor: pointer; }
 
-        /* VIP History Bar - FULL FIXED */
         .history-bar { display: flex; gap: 6px; padding: 10px 8px; background: #050505; overflow-x: auto; scrollbar-width: none; min-height: 25px; justify-content: flex-start; align-items: center; }
         .h-tag { padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 900; background: #222; border: 1px solid #444; flex-shrink: 0; min-width: 45px; text-align: center; }
         .h-blue { color: var(--blue); border-color: var(--blue); }
         .h-purple { color: var(--vip-purple); border-color: var(--vip-purple); }
         .h-gold { color: var(--gold); border-color: var(--gold); text-shadow: 0 0 5px var(--gold); }
 
-        /* Arena styling */
         .arena { height: 230px; background: radial-gradient(circle at bottom left, #1c1d21, #000); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #mVal { font-size: 55px; font-weight: 900; z-index: 10; text-shadow: 0 0 15px rgba(255,255,255,0.2); transition: color 0.2s; }
         #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
         #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
         #win-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(40, 167, 69, 0.95); padding: 15px 30px; border-radius: 50px; border: 2px solid #fff; box-shadow: 0 0 20px #28a745; z-index: 100; display: none; text-align: center; }
 
-        /* Controls */
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
         .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
         .b-input { width: 90%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px; font-size: 14px; }
@@ -169,7 +163,7 @@ const auth = firebase.auth();
 const db = firebase.database();
 const cashoutSound = new Audio('https://files.catbox.moe/v6p5at.mp3');
 
-let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true;
+let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWaiting = true, currentPlayers = 1245;
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true;
 
@@ -221,9 +215,9 @@ function start7sTimer() {
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
     
-    // Update live player count randomly
-    let pCount = Math.floor(Math.random() * (1400 - 900) + 900);
-    document.getElementById('pCount').innerText = pCount;
+    // Players increase during waiting
+    currentPlayers = Math.floor(Math.random() * (1500 - 1100) + 1100);
+    document.getElementById('pCount').innerText = currentPlayers;
 
     let timer = setInterval(() => {
         document.getElementById('tBox').innerText = `Next Round: ${t}s`;
@@ -248,6 +242,12 @@ function launchPlane() {
         if(!isFlying) return;
         mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
+
+        // Players decrease live as plane flies
+        if(currentPlayers > 50 && Math.random() < 0.4) {
+            currentPlayers -= Math.floor(Math.random() * 15);
+            document.getElementById('pCount').innerText = currentPlayers;
+        }
 
         [1, 2].forEach(id => {
             let b = id === 1 ? b1 : b2;
@@ -314,7 +314,7 @@ function startFakeWinners() {
 }
 
 function generateFakeHistory() { 
-    for(let i=0; i<20; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); 
+    for(let i=0; i<25; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); 
 }
 
 function toggleTab(id) { 
@@ -353,5 +353,5 @@ function submitWit() {
 }
 </script>
 </body>
-                </html>
-            
+    </html>
+    
