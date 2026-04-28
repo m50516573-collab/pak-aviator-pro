@@ -113,16 +113,25 @@
     <div id="depTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--gold); text-align:center;">DEPOSIT (JAZZCASH)</h3>
-        <div class="inst-box"><b>Till ID: 983199695</b><br>Method: Dial *786*10# Ya App se Till Payment karein.</div>
+        <div class="inst-box">
+            <b>NAME: MUHAMMAD SHOP</b><br>
+            <b>TILL ID: 983199695</b><hr style="border:0.5px solid #333;">
+            <b>HOW TO PAY:</b><br>
+            1. Dial <b>*786*10#</b> ya JazzCash App open karein.<br>
+            2. <b>Till Payment</b> select karein.<br>
+            3. Till ID <b>983199695</b> likhein.<br>
+            4. Name <b>Muhammad Shop</b> confirm karein.<br>
+            5. Amount bhej kar niche TID enter karein.
+        </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="Transaction ID (TID)" class="b-input" style="width:100%;">
-        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT</button>
+        <button onclick="submitDep()" class="b-btn" style="width:100%">SUBMIT DEPOSIT</button>
     </div>
 
     <div id="witTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
-        <div class="inst-box" style="border-left-color: var(--blue);">- Min Withdraw: Rs 500.<br>- Payment: 24-48 Hours.</div>
+        <div class="inst-box" style="border-left-color: var(--blue);">- Min Withdraw: Rs 500.<br>- Payment: 24-48 Hours.<br>- Wager Required: Rs 5000.</div>
         <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="wNum" placeholder="JazzCash Number" class="b-input" style="width:100%;">
         <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">WITHDRAW</button>
@@ -269,7 +278,7 @@ function handleBet(id) {
     } else if(isFlying && b.active && !b.cashed) {
         let win = b.amt * mult; db.ref('users/'+uid).update({balance: balance + win});
         b.cashed = true; btn.innerText = "WON Rs " + win.toFixed(0); btn.style.background = "#155724";
-        addWinRow("YOU", b.amt, mult.toFixed(2));
+        addWinRow("YOU ("+userEmail.split('@')[0]+")", b.amt, mult.toFixed(2));
     }
 }
 
@@ -281,13 +290,21 @@ function addWinRow(u, b, x) {
 }
 
 function startFakeWinners() {
-    setInterval(() => { if(isFlying && Math.random() < 0.4) addWinRow("User_"+Math.floor(Math.random()*999), 100, (Math.random()*mult).toFixed(2)); }, 1500);
+    const users = ["ali", "khan", "waseem", "sunny", "nomi", "zadi", "rana", "malik", "asif", "bilal", "umer", "hadi"];
+    const amts = [100, 200, 500, 1000, 1500, 300, 150, 450, 800, 2500];
+    setInterval(() => { 
+        if(isFlying && Math.random() < 0.4) {
+            let fakeU = users[Math.floor(Math.random()*users.length)] + Math.floor(Math.random()*99) + "...@gmail.com";
+            let fakeB = amts[Math.floor(Math.random()*amts.length)];
+            addWinRow(fakeU, fakeB, (Math.random()*mult).toFixed(2)); 
+        }
+    }, 1500);
 }
 
 function generateFakeHistory() { const hBar = document.getElementById('hBar'); for(let i=0; i<30; i++) { addHistoryTag((Math.random()*4 + 1).toFixed(2)); } }
 function addHistoryTag(val) { const hBar = document.getElementById('hBar'); const tag = document.createElement('div'); tag.className = 'h-tag ' + (val >= 10 ? 'h-high' : (val >= 2 ? 'h-mid' : '')); tag.innerText = val + 'x'; hBar.prepend(tag); }
-function submitDep() { const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value; if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Sent!"); } toggleTab(); }
-function submitWit() { const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value; if(a >= 500 && wager >= 5000 && a <= balance) { db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'}); db.ref('users/'+uid).update({balance: balance - a}); alert("Request Sent!"); } else { alert("Check Amount/Wager/Balance"); } toggleTab(); }
+function submitDep() { const a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value; if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Deposit Request Sent!"); } toggleTab(); }
+function submitWit() { const a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value; if(a >= 500 && wager >= 5000 && a <= balance) { db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'}); db.ref('users/'+uid).update({balance: balance - a}); alert("Withdraw Request Sent!"); } else { alert("Check Amount/Wager/Balance"); } toggleTab(); }
 function closeBonus() { document.getElementById('bonus-popup').style.display = 'none'; }
 function openDepositFromBonus() { closeBonus(); toggleTab('depTab'); }
 function startBonusTimer() { setInterval(() => { if(uid) document.getElementById('bonus-popup').style.display = 'block'; }, 180000); }
