@@ -48,10 +48,6 @@
         #plane { position: absolute; font-size: 45px; bottom: 15%; left: 10%; z-index: 5; display: none; filter: drop-shadow(0 0 10px red); }
         #tBox { position: absolute; background: rgba(0,0,0,0.85); padding: 12px 25px; border-radius: 50px; border: 2px solid var(--win); color: var(--win); font-weight: bold; z-index: 20; display: none; }
         #win-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(40, 167, 69, 0.95); padding: 15px 30px; border-radius: 50px; border: 2px solid #fff; box-shadow: 0 0 20px #28a745; z-index: 100; display: none; text-align: center; }
-        
-        /* SUPER JET UI */
-        #super-label { position: absolute; top: 15px; color: var(--gold); font-weight: 900; font-size: 14px; display: none; animation: flash 0.5s infinite; text-shadow: 0 0 10px orange; z-index: 30; }
-        @keyframes flash { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
 
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--card); }
         .bet-box { background: #14151b; padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
@@ -93,7 +89,6 @@
     <div class="history-bar" id="hBar"></div>
 
     <div class="arena">
-        <div id="super-label">SUPER JET MODE 🚀</div>
         <div id="tBox">Next Round: 7s</div>
         <div id="mVal">WAITING</div>
         <div id="plane">✈️</div>
@@ -131,7 +126,11 @@
         <div class="inst-box">
             <b>NAME: MUHAMMAD SHOP</b><br>
             <b>TILL ID: 983199695</b><hr style="border:0.2px solid #333;">
-            Copy TID from SMS and submit below.
+            <b>Instructions:</b><br>
+            1. Dial <b style="color:var(--gold)">*786*10#</b> from your mobile.<br>
+            2. Enter Till ID: <b>983199695</b>.<br>
+            3. Enter Amount and your JazzCash Pin.<br>
+            4. Copy TID from SMS and submit below.
         </div>
         <input type="number" id="dAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="dTid" placeholder="TID (Transaction ID)" class="b-input" style="width:100%;">
@@ -141,6 +140,7 @@
     <div id="witTab" class="overlay">
         <span class="close-btn" onclick="toggleTab()">×</span>
         <h3 style="color:var(--blue); text-align:center;">WITHDRAW</h3>
+        <div class="inst-box">Min Rs 500 | Wager Rs 5000</div>
         <input type="number" id="wAmt" placeholder="Amount" class="b-input" style="width:100%;">
         <input type="text" id="wNum" placeholder="JazzCash Number" class="b-input" style="width:100%;">
         <button onclick="submitWit()" class="b-btn" style="width:100%; background:var(--blue)">WITHDRAW</button>
@@ -167,15 +167,25 @@ let uid, userEmail, balance = 0, wager = 0, mult = 1.0, isFlying = false, isWait
 let b1 = { active: false, amt: 0, cashed: false }, b2 = { active: false, amt: 0, cashed: false };
 let isLoginMode = true;
 
+const pakGmails = ["ali", "khan", "hamza", "ahmed", "waseem", "malik", "rana", "jutt", "asif", "nomi", "sunny", "bilal"];
+const pakAmts = [200, 500, 1000, 2000, 5000];
+
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
     document.getElementById('auth-title').innerText = isLoginMode ? "AVIATOR LOGIN" : "AVIATOR SIGNUP";
+    document.getElementById('auth-toggle-text').innerText = isLoginMode ? "No account? Create one" : "Already have account? Login";
 }
 
 function handleAuth() {
     const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
-    if(isLoginMode) auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
-    else auth.createUserWithEmailAndPassword(e, p).then(res => db.ref('users/'+res.user.uid).set({email:e, balance:100, wager:0}));
+    if(!e || !p) return alert("Fill fields");
+    if(isLoginMode) {
+        auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+    } else {
+        auth.createUserWithEmailAndPassword(e, p).then(res => {
+            db.ref('users/' + res.user.uid).set({ email: e, balance: 100, wager: 0 });
+        }).catch(err => alert(err.message));
+    }
 }
 
 auth.onAuthStateChanged(user => {
@@ -188,11 +198,14 @@ auth.onAuthStateChanged(user => {
             if(s.exists()){
                 balance = s.val().balance || 0; wager = s.val().wager || 0;
                 document.getElementById('uBal').innerText = balance.toFixed(2);
-                document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)}`;
+                document.getElementById('profData').innerHTML = `<b>Email:</b> ${userEmail}<br><b>Wager:</b> Rs ${wager.toFixed(0)} / 5000`;
             }
         });
         generateFakeHistory(); start7sTimer(); startFakeWinners();
-    } else { document.getElementById('auth-screen').style.display = 'flex'; }
+    } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+    }
 });
 
 function start7sTimer() {
@@ -201,8 +214,8 @@ function start7sTimer() {
     document.getElementById('plane').style.display = 'none';
     document.getElementById('mVal').innerText = "WAITING";
     document.getElementById('mVal').style.color = "white";
-    document.getElementById('super-label').style.display = 'none';
     
+    // Players increase during waiting
     currentPlayers = Math.floor(Math.random() * (1500 - 1100) + 1100);
     document.getElementById('pCount').innerText = currentPlayers;
 
@@ -217,22 +230,20 @@ function launchPlane() {
     isWaiting = false; isFlying = true; mult = 1.0;
     document.getElementById('plane').style.display = 'block';
     
-    let superJetActive = false;
+    [1, 2].forEach(id => {
+        let b = id === 1 ? b1 : b2;
+        if(b.active) {
+            document.getElementById('btn'+id).style.background = "linear-gradient(#f2a900, #b8860b)";
+            document.getElementById('btn'+id).innerText = "CASH OUT";
+        }
+    });
 
     function engine() {
         if(!isFlying) return;
-        
-        // Super Jet Mode Trigger
-        if(mult >= 2.0 && !superJetActive) {
-            superJetActive = true;
-            document.getElementById('super-label').style.display = 'block';
-            document.getElementById('plane').style.filter = "drop-shadow(0 0 15px gold)";
-        }
-
-        // Increase speed in Super Jet Mode
-        mult += superJetActive ? 0.05 : 0.01; 
+        mult += 0.01;
         document.getElementById('mVal').innerText = mult.toFixed(2) + "x";
 
+        // Players decrease live as plane flies
         if(currentPlayers > 50 && Math.random() < 0.4) {
             currentPlayers -= Math.floor(Math.random() * 15);
             document.getElementById('pCount').innerText = currentPlayers;
@@ -247,10 +258,7 @@ function launchPlane() {
             }
         });
 
-        document.getElementById('plane').style.left = (10 + (mult * 2.5)) + "%";
-        document.getElementById('plane').style.bottom = (15 + (mult * 1.5)) + "%";
-
-        // Logic for crash
+        document.getElementById('plane').style.left = (10 + (mult * 2.2)) + "%";
         if(Math.random() < 0.015) crash(); else setTimeout(engine, 100);
     }
     engine();
@@ -262,7 +270,7 @@ function crash() {
     document.getElementById('plane').style.display = 'none';
     addHistoryTag(mult.toFixed(2));
     [1, 2].forEach(id => {
-        let b = id === 1 ? b1 : b2; b.active = false; b.cashed = false;
+        let b = (id === 1) ? b1 : b2; b.active = false; b.cashed = false;
         document.getElementById('btn'+id).innerText = "BET";
         document.getElementById('btn'+id).style.background = "#28a745";
     });
@@ -280,7 +288,7 @@ function handleBet(id) {
     } else if(isFlying && b.active && !b.cashed) {
         let win = b.amt * mult; db.ref('users/'+uid).update({ balance: balance + win });
         b.cashed = true; btn.innerText = "WON!"; btn.style.background = "#155724";
-        cashoutSound.play();
+        try { cashoutSound.play(); } catch(e){}
         document.getElementById('pop-win-val').innerText = mult.toFixed(2) + "x";
         document.getElementById('win-pop').style.display = 'block';
         setTimeout(() => document.getElementById('win-pop').style.display = 'none', 2000);
@@ -298,32 +306,51 @@ function startFakeWinners() {
     setInterval(() => {
         if(isFlying && Math.random() < 0.7) {
             let row = document.createElement('div'); row.className = 'win-row';
-            row.innerHTML = `<span>User***</span><span>Rs 500</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
+            let name = pakGmails[Math.floor(Math.random()*pakGmails.length)] + Math.floor(Math.random()*99) + "...";
+            row.innerHTML = `<span>${name}</span><span>Rs ${pakAmts[Math.floor(Math.random()*5)]}</span><span style="color:var(--win)">${(Math.random()*mult).toFixed(2)}x</span>`;
             document.getElementById('winRows').prepend(row);
         }
     }, 1000);
 }
 
-function generateFakeHistory() { for(let i=0; i<20; i++) addHistoryTag((Math.random()*2 + 1).toFixed(2)); }
+function generateFakeHistory() { 
+    for(let i=0; i<25; i++) addHistoryTag((Math.random()*3 + 1).toFixed(2)); 
+}
 
 function toggleTab(id) { 
     document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
     if(id) document.getElementById(id).style.display = 'block'; 
+    if(id==='profileTab') loadHistory(); 
+}
+
+function loadHistory() {
+    db.ref('requests').orderByChild('uid').equalTo(uid).limitToLast(5).on('value', s => {
+        let h = ""; 
+        s.forEach(c => { 
+            let data = c.val();
+            let statusColor = data.status === 'pending' ? 'var(--gold)' : 'var(--win)';
+            let borderColor = data.status === 'pending' ? 'var(--gold)' : 'var(--win)';
+            h = `<div class="status-item" style="border-left-color:${borderColor}">
+                    <b>${data.type.toUpperCase()}</b>: Rs ${data.amount} <br>
+                    Status: <span style="color:${statusColor}">${data.status.toUpperCase()}</span>
+                 </div>` + h; 
+        });
+        document.getElementById('uStatusList').innerHTML = h || "No data.";
+    });
 }
 
 function submitDep() {
     let a = document.getElementById('dAmt').value, t = document.getElementById('dTid').value;
-    if(a && t) { db.ref('requests').push({uid, email:userEmail, amount:a, tid:t, type:'deposit', status:'pending'}); alert("Sent!"); toggleTab(); }
+    if(a && t) { db.ref('requests').push({uid, email: userEmail, amount: a, tid: t, type: 'deposit', status: 'pending'}); alert("Deposit Request Sent!"); toggleTab(); }
 }
 
 function submitWit() {
     let a = document.getElementById('wAmt').value, n = document.getElementById('wNum').value;
     if(a >= 500 && wager >= 5000 && a <= balance) {
-        db.ref('requests').push({uid, email:userEmail, amount:a, number:n, type:'withdraw', status:'pending'});
-        db.ref('users/'+uid).update({ balance: balance - a }); alert("Sent!"); toggleTab();
-    }
+        db.ref('requests').push({uid, email: userEmail, amount: a, number: n, type: 'withdraw', status: 'pending'});
+        db.ref('users/'+uid).update({ balance: balance - a }); alert("Withdrawal Request Sent!"); toggleTab();
+    } else alert("Min Rs 500 or Wager target (Rs 5000) not met.");
 }
 </script>
 </body>
     </html>
-    
